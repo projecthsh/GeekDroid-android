@@ -1,0 +1,12 @@
+appname="GeekDroid"
+appver="1.1"
+packagename="reopenlua.demo.m3"
+theme="Theme_Material_Light_NoActionBar"
+welcome_time="0"
+debugmode=true
+enableExtendedOutputSupport=false
+enableDialogLog=false
+user_permission={
+  "INTERNET",
+  "WRITE_EXTERNAL_STORAGE",
+}

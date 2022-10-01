@@ -1,0 +1,19 @@
+{
+  NestedScrollView,
+  layout_width="fill",
+  layout_height="fill",
+  {
+    LinearLayoutCompat,
+    orientation="vertical",
+    layout_width="fill",
+    layout_height="fill",
+    padding="16dp",
+    layoutTransition=LayoutTransition().enableTransitionType(LayoutTransition.CHANGING),
+    {
+      MaterialTextView,
+      text="本地",
+      textStyle="bold",
+      textSize="16sp",
+    },
+  },
+}

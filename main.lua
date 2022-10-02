@@ -15,6 +15,8 @@ import {
   "androidx.core.widget.NestedScrollView",
   "androidx.coordinatorlayout.widget.CoordinatorLayout",
   "androidx.viewpager.widget.ViewPager",
+  "androidx.recyclerview.widget.RecyclerView",
+  "androidx.recyclerview.widget.LinearLayoutManager",
   "androidx.swiperefreshlayout.widget.SwipeRefreshLayout",
   "androidx.appcompat.widget.LinearLayoutCompat",
   "androidx.appcompat.widget.AppCompatImageView",
@@ -25,8 +27,7 @@ import {
   "com.google.android.material.card.MaterialCardView",
   "com.google.android.material.bottomnavigation.BottomNavigationView",
   "com.google.android.material.dialog.MaterialAlertDialogBuilder",
-  --"com.google.android.material.switchmaterial.SwitchMaterial",
-  "com.google.android.material.materialswitch.MaterialSwitch",--谷歌起名一直可以的。MD2主题请继续使用旧库
+  "com.google.android.material.materialswitch.MaterialSwitch",
   "com.google.android.material.textview.MaterialTextView",
   "com.google.android.material.button.MaterialButton",
   "com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton",
@@ -36,6 +37,8 @@ import {
   "com.google.android.material.textfield.TextInputLayout",
   "com.open.lua.widget.ElasticListView",
 
+  "github.daisukiKaffuChino.LuaCustRecyclerAdapter",
+  "github.daisukiKaffuChino.LuaCustRecyclerAdapter$AdapterCreator",
   "github.daisukiKaffuChino.utils.LuaThemeUtil",
   "com.daimajia.androidanimations.library.Techniques",
   "com.daimajia.androidanimations.library.YoYo",
@@ -45,15 +48,6 @@ import {
 activity.setTheme(R.style.Theme_ReOpenLua_Material3)
 import"com.google.android.material.color.DynamicColors"
 DynamicColors.applyIfAvailable(this)
---[[reOpenLua+ Open Source Project
-     -----Material 3 简单示例 更新1-----
-酷安@得想办法娶了智乃 2022.08.18 保留所有权利
-运行必要的编辑器版本 reOpenLua+ 0.7.7及以上]]
-
---更新日志:适配了相关Java方法调整和部分功能重新实现
-
---小Tip：事实上，reOpenLua+要适配Material You也是很容易的
---但考虑到动态取色仅支持Android 12及以上，缺乏泛用性，故未作支持
 
 --初始化颜色
 --为了使深色主题效果正常，请不要使用硬编码颜色!
@@ -76,6 +70,32 @@ function getFileDrawable(file)
   bitmap = BitmapFactory.decodeStream(fis)
   return BitmapDrawable(activity.getResources(), bitmap)
 end
+
+
+
+function 软件信息(pack)
+  import "android.net.Uri"
+  import "android.content.Intent"
+  import "android.provider.Settings"
+  intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+  intent.setData(Uri.parse("package:"..pack));
+  activity.startActivityForResult(intent, 100);
+end
+
+function GetAppInfo(包名)
+  local pm = activity.getPackageManager();
+  local 图标 = pm.getApplicationInfo(tostring(包名),0)
+  local 图标 = 图标.loadIcon(pm);
+  local pkg = activity.getPackageManager().getPackageInfo(包名, 0);
+  local 应用名称 = pkg.applicationInfo.loadLabel(activity.getPackageManager())
+  local 版本号 = activity.getPackageManager().getPackageInfo(包名, 0).versionName
+  local 最后更新时间 = activity.getPackageManager().getPackageInfo(包名, 0).lastUpdateTime
+  local cal = Calendar.getInstance();
+  cal.setTimeInMillis(最后更新时间);
+  local 最后更新时间 = cal.getTime().toLocaleString()
+  return 包名,版本号,最后更新时间,图标,应用名称
+end
+
 
 layout={
   CoordinatorLayout,
@@ -334,29 +354,69 @@ item={
 
 
 --构建适配器
-adapter=LuaAdapter(activity,data,item)
-list.setAdapter(adapter)
+adapterm=LuaAdapter(activity,data,item)
+list.setAdapter(adapterm)
 
 list.onItemClick=function(l,v,p,i)--列表适配器点击事件
   print("点击  "..v.Tag.标题.text)
 end
 
 list.onItemLongClick=function(l,v,p,i)--列表适配器长按事件
-  print("长按  "..v.Tag.标题.text)
+  print("长按  "..v.Tag.内容.text)
   return true
 end
 
+json_table=[[
+[{
+  "ids": "air.com.adobe.pstouchphone",
+  "name": "PS Touch",
+  "logo": "https://source-projecthsh.bangumi.cyou/%E5%9B%BE%E6%A0%87/PS%20CC_9.9.9.png",
+  "screenshorts": [
+  ],
+  "desc": "Android版PhotoShop",
+  "tags": [
+    "图像处理"
+  ]
+},
+{
+  "ids": "eu.kanade.tachiyomi",
+  "name": "Tachiyomi",
+  "logo": "https://source-projecthsh.bangumi.cyou/%E5%9B%BE%E6%A0%87/PS%20CC_9.9.9.png",
+  "screenshorts": [
+    "https://source-projecthsh.bangumi.cyou/%E6%88%AA%E5%9B%BE/home_library-light.png",
+    "https://source-projecthsh.bangumi.cyou/%E6%88%AA%E5%9B%BE/home_tracking-light.png",
+    "https://source-projecthsh.bangumi.cyou/%E6%88%AA%E5%9B%BE/home_reader-light.png"
+  ],
+  "desc": "免费开源漫画订阅阅读软件",
+  "tags": [
+    "阅读器",
+    "漫画",
+    "开源"
+  ]
+}
+]
+]]
 
 
+cjson=require "cjson"
+
+vdata=cjson.decode(json_table)
+
+for i in pairs(vdata) do
+  adapterm.add{标题=vdata[i].name,内容=vdata[i].ids}
+end
+
+
+
+
+--[[
 --动态添加内容
-for i = 0,2
-  adapter.add{标题="列表标题4",内容="列表内容4"}--将一组内容添加到适配器
-  adapter.add{标题="列表标题5",内容="列表内容5"}--将一组内容添加到适配器
-  adapter.add{标题="列表标题6",内容="列表内容6"}--将一组内容添加到适配器
+for i = 0,10
+  adapterm.add{标题="列表标题"..i,内容="列表内容"..i}--将一组内容添加到适配器
 end
 
 --插入内容,从0开始记数
-adapter.insert(3,{标题="列表标题7",内容="动态插入-列表内容7"})
+adapterm.insert(3,{标题="列表标题",内容="动态插入-列表内容"})
 
 list.setOnScrollListener{
   onScrollStateChanged=function(l,s)
@@ -365,16 +425,16 @@ list.setOnScrollListener{
       --列表已经下滑到最底部
     end
   end
-}
+}]]
 
 --[[
 --删除内容,从0开始记数
---adapter.remove(0)
+--adapterm.remove(0)
 --清空所有内容
---adapter.clear()--清空适配器
+--adapterm.clear()--清空适配器
 --更新数据,如果data表有变动，用这个更新显示
-adapter.notifyDataSetChanged()
-adapter.getCount()--获取当前item个数
-adapter.getData()--获取适配器的data表
+adapterm.notifyDataSetChanged()
+adapterm.getCount()--获取当前item个数
+adapterm.getData()--获取适配器的data表
 list.setSelection(0)--跳转到第几个item位置
 ]]

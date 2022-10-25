@@ -139,7 +139,7 @@
     },
     {
       LinearLayoutCompat,
-      layout_marginTop="24dp",
+      layout_marginTop="16dp",
       layout_width="fill",
       layout_height="wrap",
       gravity="center",
@@ -212,7 +212,6 @@
       textStyle="bold",
       textSize="16sp",
       textColor=primaryc,
-      layout_marginTop="16dp",
     },
     {
       LinearLayoutCompat,

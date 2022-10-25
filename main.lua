@@ -5,6 +5,7 @@ import {
   "android.widget.*",
   "android.view.*",
   "android.content.pm.PackageManager",
+  "android.content.Intent",
   "android.graphics.BitmapFactory",
   "android.graphics.drawable.BitmapDrawable",
   "android.graphics.drawable.ColorDrawable",
@@ -35,13 +36,14 @@ import {
   "com.google.android.material.button.MaterialButtonToggleGroup",
   "com.google.android.material.textfield.TextInputEditText",
   "com.google.android.material.textfield.TextInputLayout",
-  "com.open.lua.widget.ElasticListView",
 
   "github.daisukiKaffuChino.LuaCustRecyclerAdapter",
-  "github.daisukiKaffuChino.LuaCustRecyclerAdapter$AdapterCreator",
+  "github.daisukiKaffuChino.AdapterCreator",
+  "github.daisukiKaffuChino.LuaCustRecyclerHolder",
   "github.daisukiKaffuChino.utils.LuaThemeUtil",
   "com.daimajia.androidanimations.library.Techniques",
   "com.daimajia.androidanimations.library.YoYo",
+  "me.everything.android.ui.overscroll.*",
 }
 
 --设置主题
@@ -73,30 +75,6 @@ end
 
 
 
-function 软件信息(pack)
-  import "android.net.Uri"
-  import "android.content.Intent"
-  import "android.provider.Settings"
-  intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
-  intent.setData(Uri.parse("package:"..pack));
-  activity.startActivityForResult(intent, 100);
-end
-
-function GetAppInfo(包名)
-  local pm = activity.getPackageManager();
-  local 图标 = pm.getApplicationInfo(tostring(包名),0)
-  local 图标 = 图标.loadIcon(pm);
-  local pkg = activity.getPackageManager().getPackageInfo(包名, 0);
-  local 应用名称 = pkg.applicationInfo.loadLabel(activity.getPackageManager())
-  local 版本号 = activity.getPackageManager().getPackageInfo(包名, 0).versionName
-  local 最后更新时间 = activity.getPackageManager().getPackageInfo(包名, 0).lastUpdateTime
-  local cal = Calendar.getInstance();
-  cal.setTimeInMillis(最后更新时间);
-  local 最后更新时间 = cal.getTime().toLocaleString()
-  return 包名,版本号,最后更新时间,图标,应用名称
-end
-
-
 layout={
   CoordinatorLayout,
   layout_width="fill",
@@ -109,7 +87,7 @@ layout={
       CollapsingToolbarLayout,
       layout_width="fill",
       layout_height="fill",
-      layout_scrollFlags="scroll|exitUtilCollapsed|snap",
+      layout_scrollFlags="exitUtilCollapsed|snap",
       title="GeekDroid",
       background=ColorDrawable(surfaceVar),
       --expandedTitleColor="#FFFFFF",
@@ -143,12 +121,12 @@ layout={
         ViewPager,
         id="vpg",
         --无缝迁移到新标准库，reOpenLua+已经过优化，像使用PageView一样使用ViewPager！
-        --在类似使用场景中我们更推荐FragmentContainerView。不过这不在本demo演示范围内
+        --在类似使用场景中我们更推荐Fragfunction()mentContainerView。不过这不在本demo演示范围内
         layout_width="fill",
         layout_height="fill",
         pages={
           "page_file",
-          "page_download",
+          "page_find",
           "page_home",
           "page_user",
           "page_setting",
@@ -194,14 +172,14 @@ bottombar.layoutParams.setBehavior(bottombarBehavior())
 bottombar.setLabelVisibilityMode(0)--设置tab样式
 
 --设置底栏项目
-bottombar.menu.add(0,0,0,"本地")
-bottombar.menu.add(0,1,1,"下载")
+bottombar.menu.add(0,0,0,"文件")
+bottombar.menu.add(0,1,1,"发现")
 bottombar.menu.add(0,2,2,"主页")
 bottombar.menu.add(0,3,3,"我的")--参数分别对应groupid homeid order name
 bottombar.menu.add(0,4,4,"设置")
 --设置底栏图标
 bottombar.menu.findItem(0).setIcon(getFileDrawable("content-save"))
-bottombar.menu.findItem(1).setIcon(getFileDrawable("download"))--这里findItem取的是home id
+bottombar.menu.findItem(1).setIcon(getFileDrawable("find-replace"))--这里findItem取的是home id
 bottombar.menu.findItem(2).setIcon(getFileDrawable("home"))
 bottombar.menu.findItem(3).setIcon(getFileDrawable("tooltip-account"))
 bottombar.menu.findItem(4).setIcon(getFileDrawable("cog"))
@@ -209,8 +187,6 @@ bottombar.menu.findItem(4).setIcon(getFileDrawable("cog"))
 local addToolbarMenu=lambda a,b,c,name:toolbar.menu.add(a,b,c,name)
 addToolbarMenu(0,0,0,"About")
 addToolbarMenu(0,1,1,"Exit")
---这里展示了标准lua没有的AndroLua+专属语法lambda(匿名函数)
---可以大幅简化重复函数调用。上面的底栏也是可以用lambda添加的。
 
 --顶栏菜单点击监听
 import "androidx.appcompat.widget.Toolbar$OnMenuItemClickListener"
@@ -246,6 +222,8 @@ vpg.setOnPageChangeListener(ViewPager.OnPageChangeListener{
     end
 end})
 
+
+
 bottombar.setOnNavigationItemSelectedListener(BottomNavigationView.OnNavigationItemSelectedListener{
   onNavigationItemSelected = function(item)
     vpg.setCurrentItem(item.getItemId())
@@ -253,21 +231,6 @@ bottombar.setOnNavigationItemSelectedListener(BottomNavigationView.OnNavigationI
 end})
 --默认主页
 bottombar.setSelectedItemId(2)
-
---[[初始化TabLayout(弃用)
-local tabTable={"Pie Chart","Bar Chart"}
-for i=1, #tabTable do
-  mtab.addTab(mtab.newTab().setText(tabTable[i]))
-end
-cvpg.setOnPageChangeListener(ViewPager.OnPageChangeListener{
-  onPageSelected=function(v)
-    mtab.getTabAt(v).select()
-end})
-
-mtab.addOnTabSelectedListener(TabLayout.OnTabSelectedListener{
-  onTabSelected = function(tab)
-    cvpg.setCurrentItem(tab.getPosition())
-end})]]
 
 --MD3 Demo 1.1
 --一行解决控件联动。使用LuaPagerAdapter新增的构造方法，支持在布局表中设置标题!
@@ -294,21 +257,10 @@ local corii={dp2px(24),dp2px(24),dp2px(24),dp2px(24)}
 t1.setBoxCornerRadii(table.unpack(corii))
 t2.setBoxCornerRadii(table.unpack(corii))
 
---已知bug：
---底栏的behavior不知道为什么写着写着就失效了..懒得研究了
-
---[[------------------------------
-
-Material Design是自由的，在符合视觉协调的基础上，你也可以发挥想象力打造自己的UI
-本演示DEMO在有限的篇幅里，并不能做到面面俱到，对于真正的程序设计知识依旧是沧海一粟。
-多多实践，不要再被评论区的老年布局骗了，希望大家能用reOpenLua+写出优美的程序!
-酷安@得想办法娶了智乃 保留所有权利 未经本人允许禁止转载
-
---------------------------------]]
 
 
---shizukuSwitch.setClickable(false)
 
+--尝试解决切换模式的问题
 themeSwitch.onClick=function()
   bottombar.setSelectedItemId(4)
   activity.switchDayNight()
@@ -320,53 +272,10 @@ end
 
 
 
---适配器data数据表
-data={
-  {标题="列表标题",内容="列表内容"},
-};
-
---适配器item项目布局
-item={
-  LinearLayoutCompat;--线性控件
-  orientation='vertical';--布局方向
-  layout_width='fill';--布局宽度
-  layout_height='wrap';--布局高度
-  padding='10dp';--控件内边距
-  {
-    MaterialTextView;--文本控件
-    layout_width='fill';--控件宽度
-    layout_height='wrap';--控件高度
-    textSize='16sp';--文字大小
-    textColor='#333333';--文字颜色
-    id='标题';--设置控件ID
-    gravity='center';--重力
-  };
-  {
-    MaterialTextView;--文本控件
-    layout_width='fill';--控件宽度
-    layout_height='wrap';--控件高度
-    textSize='16sp';--文字大小
-    --textColor='#333333';--文字颜色
-    id='内容';--设置控件ID
-    gravity='center';--重力
-  };
-};
 
 
---构建适配器
-adapterm=LuaAdapter(activity,data,item)
-list.setAdapter(adapterm)
-
-list.onItemClick=function(l,v,p,i)--列表适配器点击事件
-  print("点击  "..v.Tag.标题.text)
-end
-
-list.onItemLongClick=function(l,v,p,i)--列表适配器长按事件
-  print("长按  "..v.Tag.内容.text)
-  return true
-end
-
-json_table=[[
+function getOriginalSuperTable()
+  local json_table=[[
 [{
   "ids": "air.com.adobe.pstouchphone",
   "name": "PS Touch",
@@ -397,44 +306,72 @@ json_table=[[
 ]
 ]]
 
-
-cjson=require "cjson"
-
-vdata=cjson.decode(json_table)
-
-for i in pairs(vdata) do
-  adapterm.add{标题=vdata[i].name,内容=vdata[i].ids}
+  cjson=require "cjson"
+  local superTable=cjson.decode(json_table)
+  return superTable
 end
+superTable=getOriginalSuperTable()
 
 
 
 
---[[
---动态添加内容
-for i = 0,10
-  adapterm.add{标题="列表标题"..i,内容="列表内容"..i}--将一组内容添加到适配器
-end
 
---插入内容,从0开始记数
-adapterm.insert(3,{标题="列表标题",内容="动态插入-列表内容"})
+Mitem={
+  LinearLayoutCompat;
+  orientation='vertical';
+  layout_width='fill';
+  layout_height='wrap';
+  id="content",
+  padding='10dp';
+  {
+    MaterialTextView;
+    layout_width='fill';
+    layout_height='wrap';
+    textSize='16sp';
+    textColor='#333333';
+    id='title';
+    gravity='center';
+  };
+  {
+    MaterialTextView;
+    layout_width='fill';
+    layout_height='wrap';
+    textSize='16sp';
+    id='profile';
+    gravity='center';
+  };
+};
 
-list.setOnScrollListener{
-  onScrollStateChanged=function(l,s)
-    --适配器滑动时
-    if list.getLastVisiblePosition()==list.getCount()-1 then
-      --列表已经下滑到最底部
+
+
+
+adapterm=LuaCustRecyclerAdapter(AdapterCreator({
+  getItemCount=function()
+    return #superTable
+  end,
+  getItemViewType=function(position)
+    return 0
+  end,
+  onCreateViewHolder=function(parent,viewType)
+    local views={}
+    holder=LuaCustRecyclerHolder(loadlayout(Mitem,views))
+    holder.view.setTag(views)
+    return holder
+  end,
+  onBindViewHolder=function(holder,position)
+    view=holder.view.getTag()
+    view.title.Text=superTable[position+1].name
+    view.profile.Text=superTable[position+1].ids
+    view.content.backgroundResource=rippleRes.resourceId
+    view.content.onClick=function()
+      print(superTable[position+1].name)
     end
-  end
-}]]
+    view.content.onLongClick=function()
+      --print(superTable[position+1].ids)
+    end
+  end,
+}))
 
---[[
---删除内容,从0开始记数
---adapterm.remove(0)
---清空所有内容
---adapterm.clear()--清空适配器
---更新数据,如果data表有变动，用这个更新显示
-adapterm.notifyDataSetChanged()
-adapterm.getCount()--获取当前item个数
-adapterm.getData()--获取适配器的data表
-list.setSelection(0)--跳转到第几个item位置
-]]
+recycler_view.setAdapter(adapterm)
+recycler_view.setLayoutManager(LinearLayoutManager(this))
+OverScrollDecoratorHelper.setUpOverScroll(recycler_view, OverScrollDecoratorHelper.ORIENTATION_VERTICAL)

@@ -44,6 +44,7 @@ import {
   "com.daimajia.androidanimations.library.Techniques",
   "com.daimajia.androidanimations.library.YoYo",
   "me.everything.android.ui.overscroll.*",
+  "mods.fun",
 }
 
 --设置主题

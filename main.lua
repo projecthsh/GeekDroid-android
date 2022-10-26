@@ -7,6 +7,8 @@ import {
   "android.content.pm.PackageManager",
   "android.content.Intent",
   "android.graphics.BitmapFactory",
+  "android.graphics.drawable.GradientDrawable$Orientation",
+  "android.graphics.drawable.Drawable",
   "android.graphics.drawable.BitmapDrawable",
   "android.graphics.drawable.ColorDrawable",
   "android.animation.LayoutTransition",
@@ -47,11 +49,11 @@ import {
   "mods.fun",
 }
 
+
 --设置主题
 activity.setTheme(R.style.Theme_ReOpenLua_Material3)
 import"com.google.android.material.color.DynamicColors"
 DynamicColors.applyIfAvailable(this)
-
 --初始化颜色
 --为了使深色主题效果正常，请不要使用硬编码颜色!
 local themeUtil=LuaThemeUtil(this)
@@ -278,23 +280,42 @@ local Mitem={
   layout_height='wrap';
   id="content",
   padding='10dp';
-  {
-    MaterialTextView;
-    layout_width='fill';
-    layout_height='wrap';
-    textSize='16sp';
-    textColor='#333333';
-    id='title';
-    gravity='center';
-  };
-  {
-    MaterialTextView;
-    layout_width='fill';
-    layout_height='wrap';
-    textSize='16sp';
-    id='profile';
-    gravity='center';
-  };
+  {LinearLayoutCompat,
+    Orientation=0,
+    layout_width="fill",
+    layout_height="wrap",
+    {AppCompatImageView,
+      layout_marginTop="16dp",
+      layout_marginBottom="16dp",
+      layout_marginLeft="8dp",
+      layout_width="42dp",
+      layout_height="42dp",
+      id="icon",
+    },
+    {LinearLayoutCompat,
+      layout_width="fill",
+      layout_height="wrap",
+      layout_marginTop="4dp",
+      layout_marginBottom="4dp",
+      layout_marginLeft="12dp",
+      Orientation=1,
+      {MaterialTextView,
+        textSize="18sp",
+        id="title",
+        textColor=0xaa000000,
+      },
+      {MaterialTextView,
+        ellipsize='end';
+        singleLine=true,
+        textSize="13sp",
+        id="profile",
+      },
+      {MaterialTextView,
+        textSize="13sp",
+        id="pack",
+      },
+    },
+  },
 };
 
 
@@ -316,6 +337,8 @@ function CreateAdapter()
       view=holder.view.getTag()
       view.title.Text=superTable[position+1].name
       view.profile.Text=superTable[position+1].desc
+      view.pack.Text=superTable[position+1].packge
+      view.icon.setImageBitmap(loadbitmap(superTable[position+1].logo))
       view.content.backgroundResource=rippleRes.resourceId
       view.content.onClick=function()
         print(superTable[position+1].name)

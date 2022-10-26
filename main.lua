@@ -302,7 +302,6 @@ local Mitem={
       {MaterialTextView,
         textSize="18sp",
         id="title",
-        textColor=0xaa000000,
       },
       {MaterialTextView,
         ellipsize='end';

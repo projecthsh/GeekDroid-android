@@ -57,7 +57,6 @@ DynamicColors.applyIfAvailable(this)
 local themeUtil=LuaThemeUtil(this)
 MDC_R=luajava.bindClass"com.google.android.material.R"
 surfaceColor=themeUtil.getColorSurface()
---更多颜色分类 请查阅Material.io官方文档
 backgroundc=themeUtil.getColorBackground()
 surfaceVar=themeUtil.getColorSurfaceVariant()
 titleColor=themeUtil.getTitleTextColor()
@@ -199,9 +198,8 @@ toolbar.setOnMenuItemClickListener(OnMenuItemClickListener{
       MaterialAlertDialogBuilder(this)
       .setTitle("About this Application")
       .setMessage("GeekDroid\nCopyright ©2022 OtakusNetwork\nAll rights reserved.")
-      .setPositiveButton("取消",function()
+      .setPositiveButton("确定",function()
       end)
-      .setNegativeButton("知道了",nil)
       .show()
      case 1
       activity.finish()
@@ -273,51 +271,7 @@ end
 
 
 
-
-
-function getOriginalSuperTable()
-  local json_table=[[
-[{
-  "ids": "air.com.adobe.pstouchphone",
-  "name": "PS Touch",
-  "logo": "https://source-projecthsh.bangumi.cyou/%E5%9B%BE%E6%A0%87/PS%20CC_9.9.9.png",
-  "screenshorts": [
-  ],
-  "desc": "Android版PhotoShop",
-  "tags": [
-    "图像处理"
-  ]
-},
-{
-  "ids": "eu.kanade.tachiyomi",
-  "name": "Tachiyomi",
-  "logo": "https://source-projecthsh.bangumi.cyou/%E5%9B%BE%E6%A0%87/PS%20CC_9.9.9.png",
-  "screenshorts": [
-    "https://source-projecthsh.bangumi.cyou/%E6%88%AA%E5%9B%BE/home_library-light.png",
-    "https://source-projecthsh.bangumi.cyou/%E6%88%AA%E5%9B%BE/home_tracking-light.png",
-    "https://source-projecthsh.bangumi.cyou/%E6%88%AA%E5%9B%BE/home_reader-light.png"
-  ],
-  "desc": "免费开源漫画订阅阅读软件",
-  "tags": [
-    "阅读器",
-    "漫画",
-    "开源"
-  ]
-}
-]
-]]
-
-  cjson=require "cjson"
-  local superTable=cjson.decode(json_table)
-  return superTable
-end
-superTable=getOriginalSuperTable()
-
-
-
-
-
-Mitem={
+local Mitem={
   LinearLayoutCompat;
   orientation='vertical';
   layout_width='fill';
@@ -344,35 +298,52 @@ Mitem={
 };
 
 
+function CreateAdapter()
+  adapterm=LuaCustRecyclerAdapter(AdapterCreator({
+    getItemCount=function()
+      return #superTable
+    end,
+    getItemViewType=function(position)
+      return superTable[position+1].type
+    end,
+    onCreateViewHolder=function(parent,viewType)
+      local views={}
+      holder=LuaCustRecyclerHolder(loadlayout(Mitem,views))
+      holder.view.setTag(views)
+      return holder
+    end,
+    onBindViewHolder=function(holder,position)
+      view=holder.view.getTag()
+      view.title.Text=superTable[position+1].name
+      view.profile.Text=superTable[position+1].desc
+      view.content.backgroundResource=rippleRes.resourceId
+      view.content.onClick=function()
+        print(superTable[position+1].name)
+      end
+      view.content.onLongClick=function()
+        --print(superTable[position+1].ids)
+      end
+    end,
+  }))
+
+  recycler_view.setAdapter(adapterm)
+  recycler_view.setLayoutManager(LinearLayoutManager(this))
+  OverScrollDecoratorHelper.setUpOverScroll(recycler_view, OverScrollDecoratorHelper.ORIENTATION_VERTICAL)
+end
 
 
-adapterm=LuaCustRecyclerAdapter(AdapterCreator({
-  getItemCount=function()
-    return #superTable
-  end,
-  getItemViewType=function(position)
-    return 0
-  end,
-  onCreateViewHolder=function(parent,viewType)
-    local views={}
-    holder=LuaCustRecyclerHolder(loadlayout(Mitem,views))
-    holder.view.setTag(views)
-    return holder
-  end,
-  onBindViewHolder=function(holder,position)
-    view=holder.view.getTag()
-    view.title.Text=superTable[position+1].name
-    view.profile.Text=superTable[position+1].ids
-    view.content.backgroundResource=rippleRes.resourceId
-    view.content.onClick=function()
-      print(superTable[position+1].name)
-    end
-    view.content.onLongClick=function()
-      --print(superTable[position+1].ids)
-    end
-  end,
-}))
+cjson=require "cjson"
+url1="https://raw.githubusercontent.com/projecthsh/Project-HSH/master/index-1.json"
+url2="https://raw.githubusercontent.com/Cyancat000/Project-HSH/master/index-1.json"
+Http.get(url2,nil,'utf8',nil,function(stateCode,json_table)
+  if stateCode ==200 then
+    print("获取中")
+    superTable=cjson.decode(json_table)
+    CreateAdapter()
+   else
+    print('获取内容失败')
+  end
+end)
 
-recycler_view.setAdapter(adapterm)
-recycler_view.setLayoutManager(LinearLayoutManager(this))
-OverScrollDecoratorHelper.setUpOverScroll(recycler_view, OverScrollDecoratorHelper.ORIENTATION_VERTICAL)
+
+

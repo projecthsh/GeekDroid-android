@@ -309,7 +309,9 @@
       gravity="center|start",
       backgroundResource=rippleRes.resourceId,
       onClick=function(v)
-        print(v.getChildAt(0).getText())
+        local url="https://github.com/projecthsh/GeekDroid-android"
+        viewIntent = Intent("android.intent.action.VIEW",Uri.parse(url))
+        activity.startActivity(viewIntent)
       end,
       {
         MaterialTextView,

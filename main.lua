@@ -13,6 +13,7 @@ import {
   "android.graphics.drawable.ColorDrawable",
   "android.animation.LayoutTransition",
   "android.util.TypedValue",
+  "android.net.Uri",
   "java.io.FileInputStream",
 
   "androidx.core.widget.NestedScrollView",
@@ -363,7 +364,7 @@ Http.get(url3,nil,'utf8',nil,function(stateCode,json_table)
     mainProgress.setVisibility(8)
     optionText.setVisibility(8)
    else
-   optionText.Text="连接失败，请检查你的网络设置"
+    optionText.Text="连接失败，请检查你的网络设置"
   end
 end)
 

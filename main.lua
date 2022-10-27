@@ -224,7 +224,6 @@ vpg.setOnPageChangeListener(ViewPager.OnPageChangeListener{
 end})
 
 
-
 bottombar.setOnNavigationItemSelectedListener(BottomNavigationView.OnNavigationItemSelectedListener{
   onNavigationItemSelected = function(item)
     vpg.setCurrentItem(item.getItemId())
@@ -257,7 +256,6 @@ end
 local corii={dp2px(24),dp2px(24),dp2px(24),dp2px(24)}
 t1.setBoxCornerRadii(table.unpack(corii))
 t2.setBoxCornerRadii(table.unpack(corii))
-
 
 
 
@@ -360,12 +358,12 @@ url2="https://raw.githubusercontent.com/Cyancat000/Project-HSH/master/index-1.js
 url3="https://raw.githubusercontent.com/znzsofficial/Project-HSH/master/index-1.json"
 Http.get(url3,nil,'utf8',nil,function(stateCode,json_table)
   if stateCode ==200 then
-    print("获取中")
     superTable=cjson.decode(json_table)
     CreateAdapter()
     mainProgress.setVisibility(8)
+    optionText.setVisibility(8)
    else
-    print('获取内容失败')
+   optionText.Text="连接失败，请检查你的网络设置"
   end
 end)
 

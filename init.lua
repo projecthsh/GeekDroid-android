@@ -1,6 +1,7 @@
 appname="GeekDroid"
-appver="1.1"
-packagename="reopenlua.demo.m3"
+appver="1.3"
+appcode="4"
+packagename="github.znzsofficial.geekdroid"
 theme="Theme_Material_Light_NoActionBar"
 welcome_time="0"
 debugmode=true
@@ -8,5 +9,6 @@ enableExtendedOutputSupport=false
 enableDialogLog=false
 user_permission={
   "INTERNET",
-  "WRITE_EXTERNAL_STORAGE",
+  "READ_EXTERNAL_STORAGE",
+  "WRITE_EXTERNAL_STORAGE"
 }

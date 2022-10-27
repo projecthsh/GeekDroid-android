@@ -20,18 +20,27 @@
           LinearLayoutCompat,
           orientation="vertical",
           layout_width="fill",
-          layout_height="fill",
-          gravity="center",
+          layout_height="match_parent",
+          gravity="center|top",
           {
             MaterialCardView,
             radius="16dp",
-            layout_marginBottom="56dp",
+            layout_marginTop="16dp",
+            layout_marginBottom="20%h",
             layout_width="90%w",
-            layout_height="wrap",
+            layout_height="fill",
             {
-              RecyclerView,--列表适配器
-              layout_width='fill';--宽度
-              layout_height='65%h';--高度
+              ProgressBar,
+              style="?android:attr/progressBarStyle",
+              layout_width="wrap_content",
+              layout_height="wrap_content",
+              layout_gravity="center",
+              id="mainProgress",
+            },
+            {
+              RecyclerView,
+              layout_width='fill';
+              layout_height="match_parent";
               id="recycler_view";
             },
           },

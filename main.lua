@@ -89,7 +89,7 @@ layout={
       CollapsingToolbarLayout,
       layout_width="fill",
       layout_height="fill",
-      layout_scrollFlags="exitUtilCollapsed|snap",
+      layout_scrollFlags="scroll|exitUtilCollapsed|snap",
       title="GeekDroid",
       background=ColorDrawable(surfaceVar),
       --expandedTitleColor="#FFFFFF",
@@ -357,11 +357,13 @@ end
 cjson=require "cjson"
 url1="https://raw.githubusercontent.com/projecthsh/Project-HSH/master/index-1.json"
 url2="https://raw.githubusercontent.com/Cyancat000/Project-HSH/master/index-1.json"
-Http.get(url2,nil,'utf8',nil,function(stateCode,json_table)
+url3="https://raw.githubusercontent.com/znzsofficial/Project-HSH/master/index-1.json"
+Http.get(url3,nil,'utf8',nil,function(stateCode,json_table)
   if stateCode ==200 then
     print("获取中")
     superTable=cjson.decode(json_table)
     CreateAdapter()
+    mainProgress.setVisibility(8)
    else
     print('获取内容失败')
   end

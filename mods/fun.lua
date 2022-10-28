@@ -22,3 +22,14 @@ function exec(cmd,sh,su)
   return s
 end
 
+function dp2px(dpValue)
+  local scale = activity.getResources().getDisplayMetrics().scaledDensity
+  return dpValue * scale + 0.5
+end
+
+
+
+function print(content)
+  Toast.makeText(activity,content, Toast.LENGTH_SHORT).show()
+end
+

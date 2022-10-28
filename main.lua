@@ -50,7 +50,7 @@ import {
   "mods.fun",
   "mods.setting",
 }
-
+require "mods.SnackBars"
 
 --设置主题
 activity.setTheme(R.style.Theme_ReOpenLua_Material3)
@@ -254,31 +254,17 @@ end
 
 
 --尝试增大TextInputLayout圆角，虽然不增大也挺好看的
-local function dp2px(dpValue)
-  local scale = activity.getResources().getDisplayMetrics().scaledDensity
-  return dpValue * scale + 0.5
-end
 local corii={dp2px(24),dp2px(24),dp2px(24),dp2px(24)}
 t1.setBoxCornerRadii(table.unpack(corii))
 t2.setBoxCornerRadii(table.unpack(corii))
 
-
-
---尝试解决切换模式的问题
-themeSwitch.onClick=function()
-  bottombar.setSelectedItemId(4)
-  activity.switchDayNight()
-end
-
-onNightModeChanged=function()
-  bottombar.setSelectedItemId(4)
-end
 
 --设置部分
 Materialswitch.onClick=function(v)
   --print("按钮状态 "..tostring(v.isChecked()))
   dataNegate("settings","MYswitch")
   --print(sp.getString("MYswitch",""))
+  print("切换主题后需要重载页面以生效")
 end
 
 
@@ -292,7 +278,7 @@ local Mitem={
   orientation='vertical';
   layout_width='fill';
   layout_height='wrap';
-  id="content",
+  id="contents",
   padding='10dp';
   {LinearLayoutCompat,
     Orientation=0,
@@ -352,11 +338,11 @@ function CreateAdapter()
       view.profile.Text=superTable[position+1].desc
       view.pack.Text=superTable[position+1].packge
       view.icon.setImageBitmap(loadbitmap(superTable[position+1].logo))
-      view.content.backgroundResource=rippleRes.resourceId
-      view.content.onClick=function()
+      view.contents.backgroundResource=rippleRes.resourceId
+      view.contents.onClick=function()
         print(superTable[position+1].name)
       end
-      view.content.onLongClick=function()
+      view.contents.onLongClick=function()
         --print(superTable[position+1].ids)
       end
     end,
@@ -385,3 +371,18 @@ end)
 
 
 
+exit=0
+function onKeyDown(code,event)
+  if string.find(tostring(event),"KEYCODE_BACK") ~= nil then
+    if exit+2 > tonumber(os.time()) then
+      activity.finish()
+     else
+      SnackerBar.build(activity)
+      :message("再次返回以退出")
+      :button("退出",function()activity.finish()end)
+      :show()
+      exit=tonumber(os.time())
+    end
+    return true
+  end
+end

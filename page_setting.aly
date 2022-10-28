@@ -18,38 +18,6 @@
     },
     {
       LinearLayoutCompat,
-      layout_marginTop="12dp",
-      layout_width="fill",
-      layout_height="wrap",
-      gravity="center",
-      {
-        LinearLayoutCompat,
-        orientation="vertical",
-        layout_width="wrap",
-        layout_height="wrap",
-        {
-          MaterialTextView,
-          text="切换浅色/深色模式",
-          textStyle="bold",
-          textSize="18sp",
-        },
-        {
-          MaterialTextView,
-          text="逻辑存在问题",
-          textSize="14sp",
-        },
-      },
-      {
-        Space,
-        layout_weight="1",
-      },
-      {
-        MaterialSwitch,
-        id="themeSwitch",
-      },
-    },
-    {
-      LinearLayoutCompat,
       layout_marginTop="24dp",
       layout_width="fill",
       layout_height="wrap",

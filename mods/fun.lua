@@ -1,6 +1,9 @@
+import{
+  "android.content.Context",
+}
 function 自动安装(路径,文件)
-   io.popen("su -c 'cp -rf "..路径.." /data/local/tmp/"..文件..".apk".."'")
-   io.popen("su -c 'pm install ".."/data/local/tmp/"..文件 ..".apk".."'")
+  io.popen("su -c 'cp -rf "..路径.." /data/local/tmp/"..文件..".apk".."'")
+  io.popen("su -c 'pm install ".."/data/local/tmp/"..文件 ..".apk".."'")
 end
 --自动安装("/storage/emulated/0/base.apk","名称")
 
@@ -18,3 +21,4 @@ function exec(cmd,sh,su)
   p:close()
   return s
 end
+

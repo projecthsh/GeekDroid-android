@@ -48,13 +48,17 @@ import {
   "com.daimajia.androidanimations.library.YoYo",
   "me.everything.android.ui.overscroll.*",
   "mods.fun",
+  "mods.setting",
 }
 
 
 --设置主题
 activity.setTheme(R.style.Theme_ReOpenLua_Material3)
-import"com.google.android.material.color.DynamicColors"
-DynamicColors.applyIfAvailable(this)
+if sp.getString("MYswitch",nil)=="开启" then
+  import"com.google.android.material.color.DynamicColors"
+  DynamicColors.applyIfAvailable(this)
+end
+
 --初始化颜色
 --为了使深色主题效果正常，请不要使用硬编码颜色!
 local themeUtil=LuaThemeUtil(this)
@@ -200,7 +204,7 @@ toolbar.setOnMenuItemClickListener(OnMenuItemClickListener{
       --Material 风格的对话框
       MaterialAlertDialogBuilder(this)
       .setTitle("About this Application")
-      .setMessage("GeekDroid\nCopyright ©2022 OtakusNetwork\nAll rights reserved.")
+      .setMessage("GeekDroid\nCopyright ©2022 Holy Sakura Hub.\nAll rights reserved.")
       .setPositiveButton("确定",function()
       end)
       .show()
@@ -270,8 +274,19 @@ onNightModeChanged=function()
   bottombar.setSelectedItemId(4)
 end
 
+--设置部分
+Materialswitch.onClick=function(v)
+  --print("按钮状态 "..tostring(v.isChecked()))
+  dataNegate("settings","MYswitch")
+  --print(sp.getString("MYswitch",""))
+end
 
 
+if sp.getString("MYswitch",nil)=="开启" then
+  Materialswitch.setChecked(true)
+end
+
+--RecyclerAdapter部分
 local Mitem={
   LinearLayoutCompat;
   orientation='vertical';

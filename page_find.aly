@@ -1,0 +1,37 @@
+{
+  NestedScrollView,
+  layout_width="fill",
+  layout_height="fill",
+  {
+    LinearLayoutCompat,
+    orientation="vertical",
+    layout_width="fill",
+    layout_height="fill",
+    padding="16dp",
+    layoutTransition=LayoutTransition().enableTransitionType(LayoutTransition.CHANGING),
+    {
+      MaterialButtonToggleGroup,
+      id="btnGroup",
+      layout_width="wrap",
+      layout_height="wrap",
+      layout_gravity="center",
+      singleSelection=true,
+      SelectionRequired=true,
+      {
+        MaterialButton,
+        text="发现",
+        tooltipText="发现一",
+      },
+      {
+        MaterialButton,
+        text="发现",
+        tooltipText="发现二",
+      },
+      {
+        MaterialButton,
+        text="发现",
+        tooltipText="发现三",
+      },
+    },
+  },
+}

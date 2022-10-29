@@ -31,7 +31,7 @@
             layout_height="fill",
             {LinearLayoutCompat,
               layout_gravity="center",
-  orientation="vertical",
+              orientation="vertical",
               {
                 ProgressBar,
                 style="?android:attr/progressBarStyle",
@@ -83,6 +83,7 @@
             {
               MaterialButton,
               text="Retry",
+              tooltipText="Retry",
               icon=getFileDrawable("round_refresh_black_24dp"),
               onClick=function()
                 mSwipe.setRefreshing(true)

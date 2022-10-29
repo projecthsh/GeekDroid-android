@@ -18,6 +18,7 @@ import {
   "androidx.core.widget.NestedScrollView",
   "androidx.coordinatorlayout.widget.CoordinatorLayout",
   "androidx.viewpager.widget.ViewPager",
+  "androidx.viewpager.widget.ViewPager$DecorView",
   "androidx.recyclerview.widget.RecyclerView",
   "androidx.recyclerview.widget.LinearLayoutManager",
   "androidx.swiperefreshlayout.widget.SwipeRefreshLayout",
@@ -380,12 +381,14 @@ function onKeyDown(code,event)
     if exit+2 > tonumber(os.time()) then
       activity.finish()
      else
-      local anchor=activity.findViewById(android.R.id.content)
-      Snackbar.make(anchor, "再次返回以退出", Snackbar.LENGTH_LONG).setAction("确定", View.OnClickListener{
+      Snackbar.make(vpg,"再次返回以退出",Snackbar.LENGTH_SHORT)
+      .setAnchorView(bottombar)
+      .setAction("退出", View.OnClickListener{
         onClick=function(v)
           activity.finish()
         end
-      }).show();
+      })
+      .show();
       exit=tonumber(os.time())
     end
     return true

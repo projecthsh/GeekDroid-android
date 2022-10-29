@@ -30,6 +30,6 @@ end
 
 
 function print(content)
-  Toast.makeText(activity,content, Toast.LENGTH_SHORT).show()
+  Snackbar.make(vpg,content,Snackbar.LENGTH_SHORT).setAnchorView(bottombar).show();
 end
 

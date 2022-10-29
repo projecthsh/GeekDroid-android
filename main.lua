@@ -1,6 +1,5 @@
 require "import"
 import {
-  "android.app.*",
   "android.os.*",
   "android.widget.*",
   "android.view.*",
@@ -34,6 +33,7 @@ import {
   "com.google.android.material.materialswitch.MaterialSwitch",
   "com.google.android.material.textview.MaterialTextView",
   "com.google.android.material.button.MaterialButton",
+  "com.google.android.material.snackbar.Snackbar",
   "com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton",
   "com.google.android.material.tabs.TabLayout",
   "com.google.android.material.button.MaterialButtonToggleGroup",
@@ -46,11 +46,11 @@ import {
   "github.daisukiKaffuChino.utils.LuaThemeUtil",
   "com.daimajia.androidanimations.library.Techniques",
   "com.daimajia.androidanimations.library.YoYo",
+  "com.bumptech.glide.Glide",
   "me.everything.android.ui.overscroll.*",
   "mods.fun",
   "mods.setting",
 }
-require "mods.SnackBars"
 
 --设置主题
 activity.setTheme(R.style.Theme_ReOpenLua_Material3)
@@ -318,6 +318,8 @@ local Mitem={
 };
 
 
+
+
 function CreateAdapter()
   adapterm=LuaCustRecyclerAdapter(AdapterCreator({
     getItemCount=function()
@@ -337,7 +339,8 @@ function CreateAdapter()
       view.title.Text=superTable[position+1].name
       view.profile.Text=superTable[position+1].desc
       view.pack.Text=superTable[position+1].packge
-      view.icon.setImageBitmap(loadbitmap(superTable[position+1].logo))
+      Glide.with(activity).load(superTable[position+1].logo).into(view.icon)
+      --view.icon.setImageBitmap(loadbitmap(superTable[position+1].logo))
       view.contents.backgroundResource=rippleRes.resourceId
       view.contents.onClick=function()
         print(superTable[position+1].name)
@@ -377,10 +380,12 @@ function onKeyDown(code,event)
     if exit+2 > tonumber(os.time()) then
       activity.finish()
      else
-      SnackerBar.build(activity)
-      :message("再次返回以退出")
-      :button("退出",function()activity.finish()end)
-      :show()
+      local anchor=activity.findViewById(android.R.id.content)
+      Snackbar.make(anchor, "再次返回以退出", Snackbar.LENGTH_LONG).setAction("确定", View.OnClickListener{
+        onClick=function(v)
+          activity.finish()
+        end
+      }).show();
       exit=tonumber(os.time())
     end
     return true

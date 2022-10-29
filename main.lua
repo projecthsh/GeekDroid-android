@@ -45,10 +45,14 @@ import {
   "github.daisukiKaffuChino.AdapterCreator",
   "github.daisukiKaffuChino.LuaCustRecyclerHolder",
   "github.daisukiKaffuChino.utils.LuaThemeUtil",
+
   "com.daimajia.androidanimations.library.Techniques",
   "com.daimajia.androidanimations.library.YoYo",
   "com.bumptech.glide.Glide",
+  "com.bumptech.glide.request.RequestOptions",
+  "com.bumptech.glide.load.engine.DiskCacheStrategy",
   "me.everything.android.ui.overscroll.*",
+
   "mods.fun",
   "mods.setting",
 }
@@ -340,14 +344,14 @@ function CreateAdapter()
       view.title.Text=superTable[position+1].name
       view.profile.Text=superTable[position+1].desc
       view.pack.Text=superTable[position+1].packge
-      Glide.with(activity).load(superTable[position+1].logo).into(view.icon)
+      options = RequestOptions()
+      .placeholder(getFileDrawable("preload"))
+      .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
+      Glide.with(activity).load(superTable[position+1].logo).apply(options).into(view.icon)
       --view.icon.setImageBitmap(loadbitmap(superTable[position+1].logo))
       view.contents.backgroundResource=rippleRes.resourceId
       view.contents.onClick=function()
         print(superTable[position+1].name)
-      end
-      view.contents.onLongClick=function()
-        --print(superTable[position+1].ids)
       end
     end,
   }))

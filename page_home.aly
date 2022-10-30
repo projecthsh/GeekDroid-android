@@ -26,7 +26,7 @@
             MaterialCardView,
             radius="16dp",
             layout_marginTop="16dp",
-            layout_marginBottom="20%h",
+            layout_marginBottom="140dp",
             layout_width="90%w",
             layout_height="fill",
             {LinearLayoutCompat,

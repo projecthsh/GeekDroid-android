@@ -346,7 +346,7 @@ function CreateAdapter()
       view.pack.Text=superTable[position+1].packge
       options = RequestOptions()
       .placeholder(getFileDrawable("preload"))
-      .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
+      .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC);
       Glide.with(activity).load(superTable[position+1].logo).apply(options).into(view.icon)
       --view.icon.setImageBitmap(loadbitmap(superTable[position+1].logo))
       view.contents.backgroundResource=rippleRes.resourceId

@@ -52,6 +52,7 @@
               layout_width='fill';
               layout_height="match_parent";
               id="recycler_view";
+              HasFixedSize=true,
             },
           },
         },

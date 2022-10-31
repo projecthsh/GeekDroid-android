@@ -70,7 +70,7 @@
         layout_height="wrap",
         {
           MaterialTextView,
-          text="使用SU权限静默安装",
+          text="下载完成后自动安装",
           textStyle="bold",
           textSize="18sp",
         },
@@ -86,7 +86,7 @@
       },
       {
         MaterialSwitch,
-        onClick=function(v)--SnackBar提醒重载
+        onClick=function(v)
           print("按钮状态 "..tostring(v.isChecked()))
         end,
       },
@@ -104,7 +104,7 @@
         layout_height="wrap",
         {
           MaterialTextView,
-          text="使用Shizuku Rish安装",
+          text="使用SU权限静默安装",
           textStyle="bold",
           textSize="18sp",
         },

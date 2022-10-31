@@ -3,7 +3,6 @@ import {
   "android.os.*",
   "android.widget.*",
   "android.view.*",
-  "android.content.pm.PackageManager",
   "android.content.Intent",
   "android.graphics.BitmapFactory",
   "android.graphics.drawable.GradientDrawable$Orientation",
@@ -177,14 +176,12 @@ window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS)
 window.getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR)
 window.setNavigationBarColor(surfaceVar)
 
---设置Material底栏。谷歌将启用新的BottomAppBar,两者区别不大，故不再作展示
---得益于CoordinatorLayout的强大支持，配合layout_behavior轻松实现滚动隐藏
 local bottombarBehavior=luajava.bindClass"com.google.android.material.behavior.HideBottomViewOnScrollBehavior"
 bottombar.layoutParams.setBehavior(bottombarBehavior())
 bottombar.setLabelVisibilityMode(0)--设置tab样式
 
 --设置底栏项目
-bottombar.menu.add(0,0,0,"文件")
+bottombar.menu.add(0,0,0,"本地")
 bottombar.menu.add(0,1,1,"发现")
 bottombar.menu.add(0,2,2,"主页")
 bottombar.menu.add(0,3,3,"我的")--参数分别对应groupid homeid order name
@@ -242,7 +239,6 @@ end})
 --默认主页
 bottombar.setSelectedItemId(2)
 
---MD3 Demo 1.1
 --一行解决控件联动。使用LuaPagerAdapter新增的构造方法，支持在布局表中设置标题!
 mtab.setupWithViewPager(cvpg)
 
@@ -254,9 +250,7 @@ function onClickFab()
   .setMessage("")
   .setPositiveButton("知道了",nil)
   .show()
-  -- print(bottombar.getSelectedItemId())
 end
-
 
 --尝试增大TextInputLayout圆角，虽然不增大也挺好看的
 local corii={dp2px(24),dp2px(24),dp2px(24),dp2px(24)}
@@ -272,12 +266,13 @@ Materialswitch.onClick=function(v)
   print("切换主题后需要重载页面以生效")
 end
 
-
 if sp.getString("MYswitch",nil)=="开启" then
   Materialswitch.setChecked(true)
 end
 
---RecyclerAdapter部分
+
+cjson=require "cjson"
+--主RecyclerAdapter部分
 local Mitem={
   LinearLayoutCompat;
   orientation='vertical';
@@ -324,54 +319,47 @@ local Mitem={
 
 
 
-
-function CreateAdapter()
-  adapterm=LuaCustRecyclerAdapter(AdapterCreator({
-    getItemCount=function()
-      return #superTable
-    end,
-    getItemViewType=function(position)
-      return superTable[position+1].type
-    end,
-    onCreateViewHolder=function(parent,viewType)
-      local views={}
-      holder=LuaCustRecyclerHolder(loadlayout(Mitem,views))
-      holder.view.setTag(views)
-      return holder
-    end,
-    onBindViewHolder=function(holder,position)
-      view=holder.view.getTag()
-      view.title.Text=superTable[position+1].name
-      view.profile.Text=superTable[position+1].desc
-      view.pack.Text=superTable[position+1].packge
-      options = RequestOptions()
-      .placeholder(getFileDrawable("preload"))
-      .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC);
-      Glide.with(activity).load(superTable[position+1].logo).apply(options).into(view.icon)
-      --view.icon.setImageBitmap(loadbitmap(superTable[position+1].logo))
-      view.contents.backgroundResource=rippleRes.resourceId
-      view.contents.onClick=function()
-        print(superTable[position+1].name)
-      end
-    end,
-  }))
-
-  recycler_view.setAdapter(adapterm)
-  recycler_view.setLayoutManager(LinearLayoutManager(this))
-  OverScrollDecoratorHelper.setUpOverScroll(recycler_view, OverScrollDecoratorHelper.ORIENTATION_VERTICAL)
-end
-
-
-cjson=require "cjson"
 url1="https://raw.githubusercontent.com/projecthsh/Project-HSH/master/index-1.json"
 url2="https://raw.githubusercontent.com/Cyancat000/Project-HSH/master/index-1.json"
 url3="https://raw.githubusercontent.com/znzsofficial/Project-HSH/master/index-1.json"
 Http.get(url3,nil,'utf8',nil,function(stateCode,json_table)
   if stateCode ==200 then
     superTable=cjson.decode(json_table)
-    CreateAdapter()
     mainProgress.setVisibility(8)
     optionText.setVisibility(8)
+
+    adapterm=LuaCustRecyclerAdapter(AdapterCreator({
+      getItemCount=function()
+        return #superTable
+      end,
+      getItemViewType=function(position)
+        return superTable[position+1].type
+      end,
+      onCreateViewHolder=function(parent,viewType)
+        local views={}
+        holder=LuaCustRecyclerHolder(loadlayout(Mitem,views))
+        holder.view.setTag(views)
+        return holder
+      end,
+      onBindViewHolder=function(holder,position)
+        view=holder.view.getTag()
+        view.title.Text=superTable[position+1].name
+        view.profile.Text=superTable[position+1].desc
+        view.pack.Text=superTable[position+1].packge
+        options = RequestOptions()
+        .placeholder(getFileDrawable("preload"))
+        .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC);
+        Glide.with(activity).asDrawable().load(superTable[position+1].logo).apply(options).into(view.icon)
+        view.contents.backgroundResource=rippleRes.resourceId
+        view.contents.onClick=function()
+          print(superTable[position+1].name)
+        end
+      end,
+    }))
+
+    recycler_view.setAdapter(adapterm)
+    recycler_view.setLayoutManager(LinearLayoutManager(this))
+    OverScrollDecoratorHelper.setUpOverScroll(recycler_view, OverScrollDecoratorHelper.ORIENTATION_VERTICAL)
    else
     optionText.Text="连接失败，请检查你的网络设置"
   end
@@ -379,6 +367,115 @@ end)
 
 
 
+
+
+
+--本地RecyclerView部分
+local item_app=
+{LinearLayoutCompat,
+  Orientation=0,
+  layout_width="fill",
+  layout_height="wrap",
+  id="contents",
+  {AppCompatImageView,
+    layout_marginTop="16dp",
+    layout_marginBottom="16dp",
+    layout_marginLeft="8dp",
+    layout_width="42dp",
+    layout_height="42dp",
+    id="icon",
+  },
+  {LinearLayoutCompat,
+    layout_gravity="center",
+    layout_marginTop="16dp",
+    layout_marginBottom="16dp",
+    layout_marginLeft="8dp",
+    Orientation=1,
+    layout_width="match_parent",
+    layout_height="match_parent",
+    {MaterialTextView,
+      textSize="14sp",
+      id="name",
+    },
+    {MaterialTextView,
+      textSize="12sp",
+      id="packname",
+    },
+  }
+}
+
+
+
+function CreateAppAdapter(list)
+  AppList=list()
+  adapter_app=LuaCustRecyclerAdapter(AdapterCreator({
+    getItemCount=function()
+      return #AppList
+    end,
+    onCreateViewHolder=function(parent,viewType)
+      local views={}
+      holder=LuaCustRecyclerHolder(loadlayout(item_app,views))
+      holder.view.setTag(views)
+      return holder
+    end,
+    onBindViewHolder=function(holder,position)
+      view=holder.view.getTag()
+      view.name.Text=AppList[position+1].app_name
+      view.packname.Text=AppList[position+1].packageName
+      options = RequestOptions()
+      .placeholder(getFileDrawable("preload"))
+      .skipMemoryCache(true)
+      .diskCacheStrategy(DiskCacheStrategy.RESOURCE);
+      Glide.with(activity).asDrawable().load(AppList[position+1].app_icon).apply(options).into(view.icon)
+      view.contents.backgroundResource=rippleRes.resourceId
+      view.contents.onClick=function()
+        print(AppList[position+1].app_name)
+      end
+    end,
+  }))
+  recycler_app.setAdapter(adapter_app)
+  recycler_app.setLayoutManager(LinearLayoutManager(this))
+  AppoptionText.setVisibility(8)
+  AppProgress.setVisibility(8)
+end
+
+
+thread(function()
+  require "import"
+  import "android.content.pm.ApplicationInfo"
+  local packageMgr = activity.PackageManager
+  local packages = packageMgr.getInstalledPackages(0)
+  local data = {}
+  local count = 0
+
+  while count~= #packages do
+    local packageInfo = packages[count]
+    local appInfo = packageInfo.applicationInfo
+    local packageName = packageInfo.packageName
+    local appInfo = packageInfo.applicationInfo
+
+    -- 排除列表中的系统应用
+    if (appInfo.flags & ApplicationInfo.FLAG_SYSTEM) <= 0 then
+      local label = appInfo.loadLabel(packageMgr)
+      local icon = appInfo.loadIcon(packageMgr)
+      table.insert(data, #data + 1,
+      {app_icon = icon,
+        app_name = label,
+        packageName = packageName,
+      })
+    end
+    count=count+1
+  end
+
+  function returnTable()
+    return data
+  end
+
+  call("CreateAppAdapter",returnTable)
+end)
+
+
+--退出应用
 exit=0
 function onKeyDown(code,event)
   if string.find(tostring(event),"KEYCODE_BACK") ~= nil then
@@ -398,3 +495,5 @@ function onKeyDown(code,event)
     return true
   end
 end
+--回收内存
+collectgarbage("collect")

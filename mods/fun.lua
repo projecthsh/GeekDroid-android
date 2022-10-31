@@ -1,5 +1,6 @@
 import{
   "android.content.Context",
+  "android.content.pm.PackageManager",
 }
 function 自动安装(路径,文件)
   io.popen("su -c 'cp -rf "..路径.." /data/local/tmp/"..文件..".apk".."'")

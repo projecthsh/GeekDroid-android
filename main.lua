@@ -9,6 +9,7 @@ import {
   "android.graphics.drawable.Drawable",
   "android.graphics.drawable.BitmapDrawable",
   "android.graphics.drawable.ColorDrawable",
+  "android.graphics.Typeface",
   "android.animation.LayoutTransition",
   "android.util.TypedValue",
   "android.net.Uri",
@@ -27,16 +28,17 @@ import {
   "com.google.android.material.appbar.AppBarLayout",
   "com.google.android.material.appbar.MaterialToolbar",
   "com.google.android.material.appbar.CollapsingToolbarLayout",
-  "com.google.android.material.card.MaterialCardView",
-  "com.google.android.material.bottomnavigation.BottomNavigationView",
-  "com.google.android.material.dialog.MaterialAlertDialogBuilder",
-  "com.google.android.material.materialswitch.MaterialSwitch",
-  "com.google.android.material.textview.MaterialTextView",
   "com.google.android.material.button.MaterialButton",
-  "com.google.android.material.snackbar.Snackbar",
-  "com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton",
-  "com.google.android.material.tabs.TabLayout",
+  "com.google.android.material.bottomnavigation.BottomNavigationView",
   "com.google.android.material.button.MaterialButtonToggleGroup",
+  "com.google.android.material.card.MaterialCardView",
+  "com.google.android.material.dialog.MaterialAlertDialogBuilder",
+  "com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton",
+  "com.google.android.material.materialswitch.MaterialSwitch",
+  "com.google.android.material.radiobutton.MaterialRadioButton",
+  "com.google.android.material.snackbar.Snackbar",
+  "com.google.android.material.tabs.TabLayout",
+  "com.google.android.material.textview.MaterialTextView",
   "com.google.android.material.textfield.TextInputEditText",
   "com.google.android.material.textfield.TextInputLayout",
 
@@ -194,8 +196,8 @@ bottombar.menu.findItem(3).setIcon(getFileDrawable("tooltip-account"))
 bottombar.menu.findItem(4).setIcon(getFileDrawable("cog"))
 --MaterialToolbar比普通Toolbar更强大的地方在于，它可以脱离Activity使用
 local addToolbarMenu=lambda a,b,c,name:toolbar.menu.add(a,b,c,name)
-addToolbarMenu(0,0,0,"About")
-addToolbarMenu(0,1,1,"Exit")
+addToolbarMenu(0,0,0,"换源")
+addToolbarMenu(0,1,1,"退出")
 
 --顶栏菜单点击监听
 import "androidx.appcompat.widget.Toolbar$OnMenuItemClickListener"
@@ -203,10 +205,45 @@ toolbar.setOnMenuItemClickListener(OnMenuItemClickListener{
   onMenuItemClick=function(item)
   switch item.getItemId() do
      case 0
-      --Material 风格的对话框
+      local SelectLayout=
+      {
+        LinearLayoutCompat,
+        orientation="vertical",
+        {
+          RadioGroup,
+          orientation="vertical",
+          layout_margin="20dp",
+          {
+            MaterialRadioButton,
+            text="Project HSH",
+            onClick=function()
+              dataInput("https://raw.githubusercontent.com/projecthsh/Project-HSH/master/index-1.json","settings","JSON")
+            end,
+          },
+          {
+            MaterialRadioButton,
+            text="Cyancat000",
+            onClick=function()
+              dataInput("https://raw.githubusercontent.com/Cyancat000/Project-HSH/master/index-1.json","settings","JSON")
+            end,
+          },
+          {
+            MaterialRadioButton,
+            text="znzsofficial(默认)",
+            onClick=function()
+              dataInput("https://raw.githubusercontent.com/znzsofficial/Project-HSH/master/index-1.json","settings","JSON")
+            end,
+          },
+          {
+            MaterialTextView,
+            text="重载页面后生效",
+            Typeface=Typeface.defaultFromStyle(Typeface.BOLD);
+          }
+        },
+      }
       MaterialAlertDialogBuilder(this)
-      .setTitle("About this Application")
-      .setMessage("GeekDroid\nCopyright ©2022 Holy Sakura Hub.\nAll rights reserved.")
+      .setTitle("更换JSON源")
+      .setView(loadlayout(SelectLayout))
       .setPositiveButton("确定",function()
       end)
       .show()
@@ -256,6 +293,15 @@ end
 local corii={dp2px(24),dp2px(24),dp2px(24),dp2px(24)}
 t1.setBoxCornerRadii(table.unpack(corii))
 t2.setBoxCornerRadii(table.unpack(corii))
+
+
+--设置初始JSON地址
+if sp.getString("JSON","")=="" then
+  dataInput("https://raw.githubusercontent.com/znzsofficial/Project-HSH/master/index-1.json","settings","JSON")
+  url_json="https://raw.githubusercontent.com/znzsofficial/Project-HSH/master/index-1.json"
+ else
+  url_json=sp.getString("JSON",nil)
+end
 
 
 --设置部分
@@ -318,11 +364,7 @@ local Mitem={
 };
 
 
-
-url1="https://raw.githubusercontent.com/projecthsh/Project-HSH/master/index-1.json"
-url2="https://raw.githubusercontent.com/Cyancat000/Project-HSH/master/index-1.json"
-url3="https://raw.githubusercontent.com/znzsofficial/Project-HSH/master/index-1.json"
-Http.get(url3,nil,'utf8',nil,function(stateCode,json_table)
+Http.get(url_json,nil,'utf8',nil,function(stateCode,json_table)
   if stateCode ==200 then
     superTable=cjson.decode(json_table)
     mainProgress.setVisibility(8)

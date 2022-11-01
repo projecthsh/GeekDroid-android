@@ -1,0 +1,94 @@
+[{
+  "packge": "爱门🙏",
+  "name": "「真我」的刻印",
+  "logo": "https://source-projecthsh.bangumi.cyou/UnknowFile/TRuE_Elysia.png",
+  "screenshorts": [
+  ],
+  "desc": "如水晶般纯洁无暇的少女，神的女儿「Elysia」",
+  "tags": [
+    "爱门"
+  ]
+},
+{
+  "packge": "air.com.adobe.pstouchphone",
+  "name": "PS Touch",
+  "logo": "https://source-projecthsh.bangumi.cyou/PageImage/ItemIcon/PhotoShop.png",
+  "screenshorts": [
+  ],
+  "desc": "Android版PhotoShop",
+  "tags": [
+    "图像处理"
+  ]
+},
+{
+  "packge": "eu.kanade.tachiyomi",
+  "name": "Tachiyomi",
+  "logo": "https://source-projecthsh.bangumi.cyou/PageImage/ItemIcon/Tachiyomi.png",
+  "screenshorts": [
+    "https://source-projecthsh.bangumi.cyou/PageImage/ScreenShot/home_library-light.png",
+    "https://source-projecthsh.bangumi.cyou/PageImage/ScreenShot/home_reader-light.png",
+    "https://source-projecthsh.bangumi.cyou/PageImage/ScreenShot/home_tracking-light.png"
+  ],
+  "desc": "免费开源漫画订阅阅读软件",
+  "tags": [
+    "阅读器",
+    "漫画",
+    "开源"
+  ]
+},
+{
+  "packge": "flar2.devcheck",
+  "name": "DevCheck",
+  "logo": "https://source-projecthsh.bangumi.cyou/PageImage/ItemIcon/DevCheck.png",
+  "screenshorts": [
+  ],
+  "desc": "Hardware and System Info",
+  "tags": [
+    "系统"
+  ]
+},
+{
+  "packge": "github.znzsofficial.geekdroid",
+  "name": "GeekDroid",
+  "logo": "https://source-projecthsh.bangumi.cyou/PageImage/ItemIcon/GeekDroid.png",
+  "screenshorts": [
+  ],
+  "desc": "正在开发的无服务器式应用商店",
+  "tags": [
+    "应用商店"
+  ]
+},
+{
+  "packge": "nekox.messenger",
+  "name": "Nekogram X",
+  "logo": "https://source-projecthsh.bangumi.cyou/PageImage/ItemIcon/Nekogram%20X.png",
+  "screenshorts": [
+  ],
+  "desc": "免费且开源的Telegram第三方客户端",
+  "tags": [
+    "社交"
+  ]
+},
+{
+  "packge": "com.github.kr328.clash",
+  "name": "Clash for Android",
+  "logo": "https://source-projecthsh.bangumi.cyou/PageImage/ItemIcon/Clash%20for%20Android.png",
+  "screenshorts": [
+  ],
+  "desc": "A rule-based tunnel for Android",
+  "tags": [
+    "代理"
+  ]
+},
+{
+  "packge": "air.com.adobe.pstouchphone",
+  "name": "PS Touch",
+  "logo": "https://source-projecthsh.bangumi.cyou/PageImage/ItemIcon/PhotoShop.png",
+  "screenshorts": [
+  ],
+  "desc": "Android版PhotoShop",
+  "tags": [
+    "图像处理"
+  ]
+}
+]

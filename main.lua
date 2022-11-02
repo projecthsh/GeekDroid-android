@@ -275,7 +275,8 @@ bottombar.setOnNavigationItemSelectedListener(BottomNavigationView.OnNavigationI
 end})
 --默认主页
 bottombar.setSelectedItemId(2)
-
+--预加载页面
+vpg.setOffscreenPageLimit(2)
 --一行解决控件联动。使用LuaPagerAdapter新增的构造方法，支持在布局表中设置标题!
 mtab.setupWithViewPager(cvpg)
 

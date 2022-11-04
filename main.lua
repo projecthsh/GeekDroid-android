@@ -276,7 +276,7 @@ end})
 --默认主页
 bottombar.setSelectedItemId(2)
 --预加载页面
-vpg.setOffscreenPageLimit(2)
+--vpg.setOffscreenPageLimit(2)
 --一行解决控件联动。使用LuaPagerAdapter新增的构造方法，支持在布局表中设置标题!
 mtab.setupWithViewPager(cvpg)
 
@@ -386,16 +386,191 @@ Http.get(url_json,nil,'utf8',nil,function(stateCode,json_table)
       end,
       onBindViewHolder=function(holder,position)
         view=holder.view.getTag()
-        view.title.Text=superTable[position+1].name
-        view.profile.Text=superTable[position+1].desc
-        view.pack.Text=superTable[position+1].packge
+        local app=superTable[position+1]
+        view.title.Text=app.name
+        view.profile.Text=app.desc
+        view.pack.Text=app.packge
         options = RequestOptions()
         .placeholder(getFileDrawable("preload"))
         .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC);
-        Glide.with(activity).asDrawable().load(superTable[position+1].logo).apply(options).into(view.icon)
+        Glide.with(activity).asDrawable().load(app.logo).apply(options).into(view.icon)
         view.contents.backgroundResource=rippleRes.resourceId
         view.contents.onClick=function()
-          print(superTable[position+1].name)
+
+          function SnackDownload()
+
+            Snackbar.make(vpg,app.name,Snackbar.LENGTH_SHORT)
+            .setAnchorView(bottombar)
+            .setAction("下载", View.OnClickListener{
+              onClick=function(v)
+
+
+                local downloadLayout=
+                {
+                  LinearLayoutCompat,
+                  orientation='vertical',
+                  layout_width='fill',
+                  layout_height='wrap',
+                  padding="10dp",
+                  {
+                    LinearLayoutCompat,
+                    orientation='horizontal',
+                    gravity='center|left';
+                    layout_width='fill',
+                    layout_height='fill',
+                    {
+                      LinearLayoutCompat,
+                      orientation='vertical',
+                      layout_width='fill',
+                      layout_weight='1';
+                      layout_marginLeft='10dp';
+                      gravity='center|left';
+                      {
+                        MaterialTextView;
+                        Typeface=Typeface.defaultFromStyle(Typeface.BOLD);
+                        textSize='12dp';
+                        id="TipDown";
+                      };
+                    };
+                  };
+                  {
+                    ProgressBar;
+                    layout_width='fill';
+                    layout_marginLeft='16dp';
+                    layout_marginRight='16dp';
+                    id="progress_down",
+                    style='?android:attr/progressBarStyleHorizontal';
+                  };
+                  {
+                    LinearLayoutCompat,
+                    orientation='horizontal',
+                    layout_width='fill',
+                    layout_height='wrap',
+                    gravity="center",
+                    padding="10dp",
+                    {
+                      MaterialButtonToggleGroup,
+                      id="btnGroup",
+                      layout_width="wrap",
+                      layout_height="wrap",
+                      layout_gravity="center",
+                      singleSelection=true,
+                      SelectionRequired=true,
+                      {
+                        MaterialButton;
+                        gravity='center';
+                        text='隐藏';
+                        textSize='12dp';
+                        id="cancel_down",
+                      };
+                      {
+                        MaterialButton;
+                        gravity='center';
+                        text='复制链接';
+                        textSize='12dp';
+                        id="copy_down",
+                      };
+                      {
+                        MaterialButton;
+                        gravity='center';
+                        text='下载';
+                        textSize='12dp';
+                        id="start_down",
+                      };
+                    },
+                  },
+                };
+
+
+                dialog=MaterialAlertDialogBuilder(this)
+                .setTitle(app.name.."下载")
+                .setView(loadlayout(downloadLayout))
+                .show()
+
+                function trans(url,path)
+                  require "import"
+                  import "java.net.URL"
+                  local ur =URL(url)
+                  import "java.io.File"
+                  file =File(path);
+                  con = ur.openConnection();
+                  co = con.getContentLength();
+                  is = con.getInputStream();
+                  bs = byte[1024]
+                  local len,read=0,0
+                  import "java.io.FileOutputStream"
+                  wj= FileOutputStream(path);
+                  len = is.read(bs)
+                  while len~=-1 do
+                    wj.write(bs, 0, len);
+                    read=read+len
+                    pcall(call,"download_ing",read,co)
+                    len = is.read(bs)
+                  end
+                  wj.close();
+                  is.close();
+                  pcall(call,"download_stop",co)
+
+                  activity.installApk(path)
+                end
+                function download(url,path)
+                  thread(trans,url,path)
+                end
+
+                cancel_down.onClick=function()
+                  dialog.cancel()
+                end
+
+                copy_down.onClick=function()
+                  Toast.makeText(activity, "已复制成功",Toast.LENGTH_SHORT).show()
+                  activity.getSystemService(Context.CLIPBOARD_SERVICE).setText(app.link)
+                end
+
+                start_down.onClick=function()
+                  if start_down.Text=="下载" then
+                    文件路径="/storage/emulated/0/"..app.name..".apk"
+                    download(app.link,文件路径)
+                    progress_down.setVisibility(0)
+                   elseif start_down.Text=="安装" then
+                    activity.installApk(文件路径)
+                   else
+                  end
+                end
+
+                function download_ing(a,b)--已下载，总长度(byte)
+                  isDownloading=true
+                  nowDownloading=app.name
+                  TipDown.Text="正在下载："..string.format("%0.2f",a/1024/1024).."MB/"..string.format("%0.2f",b/1024/1024).."MB"
+                  progress_down.progress=(a/b*100)
+                  start_down.Text=string.format('%.2f',(a/b*100)).."%"
+                end
+
+                --下载完成后调用
+                function download_stop(c)--总长度
+                  isDownloading=false
+                  nowDownloading=nil
+                  start_down.Text="安装"
+                  TipDown.Text="下载完成："..string.format("%0.2f",c/1024/1024).."MB"
+                end
+
+              end
+            })
+            .show();
+          end
+          if app.link=="" then
+            print(app.name.."暂无下载链接")
+           else
+            if isDownloading==true then
+              if nowDownloading~=app.name then
+                print(nowDownloading.."下载任务正在进行")
+                return true
+               else
+                SnackDownload()
+              end
+             else
+              SnackDownload()
+            end
+          end
         end
       end,
     }))
@@ -463,16 +638,17 @@ function CreateAppAdapter(list)
     end,
     onBindViewHolder=function(holder,position)
       view=holder.view.getTag()
-      view.name.Text=AppList[position+1].app_name
-      view.packname.Text=AppList[position+1].packageName
+      local localapp=AppList[position+1]
+      view.name.Text=localapp.app_name
+      view.packname.Text=localapp.packageName
       options = RequestOptions()
       .placeholder(getFileDrawable("preload"))
       .skipMemoryCache(true)
       .diskCacheStrategy(DiskCacheStrategy.RESOURCE);
-      Glide.with(activity).asDrawable().load(AppList[position+1].app_icon).apply(options).into(view.icon)
+      Glide.with(activity).asDrawable().load(localapp.app_icon).apply(options).into(view.icon)
       view.contents.backgroundResource=rippleRes.resourceId
       view.contents.onClick=function()
-        print(AppList[position+1].app_name)
+        print(localapp.app_name)
       end
     end,
   }))

@@ -398,14 +398,13 @@ Http.get(url_json,nil,'utf8',nil,function(stateCode,json_table)
         view.contents.onClick=function()
 
           function SnackDownload()
-
             Snackbar.make(vpg,app.name,Snackbar.LENGTH_SHORT)
             .setAnchorView(bottombar)
             .setAction("下载", View.OnClickListener{
               onClick=function(v)
 
 
-                local downloadLayout=
+                downloadLayout=
                 {
                   LinearLayoutCompat,
                   orientation='vertical',
@@ -528,11 +527,12 @@ Http.get(url_json,nil,'utf8',nil,function(stateCode,json_table)
 
                 start_down.onClick=function()
                   if start_down.Text=="下载" then
-                    文件路径="/storage/emulated/0/"..app.name..".apk"
-                    download(app.link,文件路径)
+                    TipDown.Text="下载进程正在启动中..."
+                    filePath="/storage/emulated/0/Download/"..app.name..".apk"
+                    download(app.link,filePath)
                     progress_down.setVisibility(0)
                    elseif start_down.Text=="安装" then
-                    activity.installApk(文件路径)
+                    activity.installApk(filePath)
                    else
                   end
                 end
@@ -557,7 +557,7 @@ Http.get(url_json,nil,'utf8',nil,function(stateCode,json_table)
             })
             .show();
           end
-          if app.link=="" then
+          if app.link=="" or app.link==nil then
             print(app.name.."暂无下载链接")
            else
             if isDownloading==true then

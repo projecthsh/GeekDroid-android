@@ -1,6 +1,6 @@
 appname="GeekDroid"
-appver="0.1.12"
-appcode="14"
+appver="0.1.14"
+appcode="16"
 packagename="github.znzsofficial.geekdroid"
 theme="Theme_Material_Light_NoActionBar"
 welcome_time="0"
@@ -10,5 +10,6 @@ enableDialogLog=false
 user_permission={
   "INTERNET",
   "READ_EXTERNAL_STORAGE",
+  "REQUEST_INSTALL_PACKAGES",
   "WRITE_EXTERNAL_STORAGE"
 }

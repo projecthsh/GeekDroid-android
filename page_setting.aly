@@ -70,13 +70,13 @@
         layout_height="wrap",
         {
           MaterialTextView,
-          text="下载完成后自动安装",
+          text="自动安装",
           textStyle="bold",
           textSize="18sp",
         },
         {
           MaterialTextView,
-          text="",
+          text="应用下载完成后自动开始安装",
           textSize="14sp",
         },
       },
@@ -86,9 +86,7 @@
       },
       {
         MaterialSwitch,
-        onClick=function(v)
-          print("按钮状态 "..tostring(v.isChecked()))
-        end,
+        id="autoSwitch",
       },
     },
     {
@@ -104,13 +102,13 @@
         layout_height="wrap",
         {
           MaterialTextView,
-          text="使用SU权限静默安装",
+          text="静默安装",
           textStyle="bold",
           textSize="18sp",
         },
         {
           MaterialTextView,
-          text="",
+          text="使用SU权限静默安装应用",
           textSize="14sp",
         },
       },
@@ -132,6 +130,7 @@
       textStyle="bold",
       textSize="16sp",
       textColor=primaryc,
+      layout_marginTop="16dp",
     },
     {
       LinearLayoutCompat,
@@ -160,7 +159,6 @@
       layout_marginTop="16dp",
       textColor=primaryc,
     },
-
     {
       LinearLayoutCompat,
       layout_marginTop="16dp",

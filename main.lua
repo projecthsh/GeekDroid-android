@@ -133,8 +133,6 @@ layout={
       {
         ViewPager,
         id="vpg",
-        --无缝迁移到新标准库，reOpenLua+已经过优化，像使用PageView一样使用ViewPager！
-        --在类似使用场景中我们更推荐Fragfunction()mentContainerView。不过这不在本demo演示范围内
         layout_width="fill",
         layout_height="fill",
         pages={
@@ -183,17 +181,20 @@ bottombar.layoutParams.setBehavior(bottombarBehavior())
 bottombar.setLabelVisibilityMode(0)--设置tab样式
 
 --设置底栏项目
-bottombar.menu.add(0,0,0,"本地")
-bottombar.menu.add(0,1,1,"发现")
-bottombar.menu.add(0,2,2,"主页")
-bottombar.menu.add(0,3,3,"我的")--参数分别对应groupid homeid order name
-bottombar.menu.add(0,4,4,"设置")
+local bottomMenu={"本地","发现","主页","我的","设置"}
+for key,v in ipairs(bottomMenu) do
+  local itemK=key-1
+  --参数分别对应groupid homeid order name
+  bottombar.menu.add(0,itemK,itemK,v)
+end
 --设置底栏图标
-bottombar.menu.findItem(0).setIcon(getFileDrawable("content-save"))
-bottombar.menu.findItem(1).setIcon(getFileDrawable("find-replace"))--这里findItem取的是home id
-bottombar.menu.findItem(2).setIcon(getFileDrawable("home"))
-bottombar.menu.findItem(3).setIcon(getFileDrawable("tooltip-account"))
-bottombar.menu.findItem(4).setIcon(getFileDrawable("cog"))
+local bottomIcon={"content-save","find-replace","home","tooltip-account","cog"}
+for key,v in ipairs(bottomIcon) do
+  local itemK=key-1
+  --这里findItem取的是home id
+  bottombar.menu.findItem(itemK).setIcon(getFileDrawable(v))
+end
+
 --MaterialToolbar比普通Toolbar更强大的地方在于，它可以脱离Activity使用
 local addToolbarMenu=lambda a,b,c,name:toolbar.menu.add(a,b,c,name)
 addToolbarMenu(0,0,0,"换源")
@@ -211,7 +212,9 @@ toolbar.setOnMenuItemClickListener(OnMenuItemClickListener{
         orientation="vertical",
         {
           RadioGroup,
+          id="jsonGroup",
           orientation="vertical",
+          layout_width="match_parent";
           layout_margin="20dp",
           {
             MaterialRadioButton,
@@ -235,10 +238,18 @@ toolbar.setOnMenuItemClickListener(OnMenuItemClickListener{
             end,
           },
           {
+            TextInputEditText;
+            layout_width="match_parent";
+            layout_gravity="center",
+            hint="自定义JSON源";
+            id="jsonEdit";
+          },
+          {
             MaterialTextView,
+            layout_marginTop="10dp",
             text="重载页面后生效",
             Typeface=Typeface.defaultFromStyle(Typeface.BOLD);
-          }
+          },
         },
       }
       MaterialAlertDialogBuilder(this)
@@ -247,6 +258,11 @@ toolbar.setOnMenuItemClickListener(OnMenuItemClickListener{
       .setPositiveButton("确定",function()
       end)
       .show()
+      jsonEdit.addTextChangedListener{
+        onTextChanged=function()
+          dataInput(tostring(jsonEdit.getText()),"settings","JSON")
+        end
+      }
      case 1
       activity.finish()
     end
@@ -305,17 +321,27 @@ if sp.getString("JSON","")=="" then
 end
 
 
---设置部分
-Materialswitch.onClick=function(v)
-  --print("按钮状态 "..tostring(v.isChecked()))
-  dataNegate("settings","MYswitch")
-  --print(sp.getString("MYswitch",""))
-  print("切换主题后需要重载页面以生效")
-end
-
 if sp.getString("MYswitch",nil)=="开启" then
   Materialswitch.setChecked(true)
 end
+
+if sp.getString("autoInstall",nil)=="开启" then
+  autoSwitch.setChecked(true)
+end
+
+--设置部分
+Materialswitch.setOnCheckedChangeListener{
+  onCheckedChanged=function()
+    dataNegate("settings","MYswitch")
+    print("切换主题后需要重载页面以生效")
+  end
+}
+
+autoSwitch.setOnCheckedChangeListener{
+  onCheckedChanged=function()
+    dataNegate("settings","autoInstall")
+  end
+}
 
 
 cjson=require "cjson"
@@ -486,6 +512,7 @@ Http.get(url_json,nil,'utf8',nil,function(stateCode,json_table)
                 .setView(loadlayout(downloadLayout))
                 .show()
 
+
                 function trans(url,path)
                   require "import"
                   import "java.net.URL"
@@ -509,8 +536,12 @@ Http.get(url_json,nil,'utf8',nil,function(stateCode,json_table)
                   wj.close();
                   is.close();
                   pcall(call,"download_stop",co)
-
-                  activity.installApk(path)
+                  import "android.content.Context"
+                  sp = activity.getSharedPreferences("settings",Context.MODE_PRIVATE)
+                  if sp.getString("autoInstall",nil)=="开启" then
+                    activity.installApk(path)
+                   else
+                  end
                 end
                 function download(url,path)
                   thread(trans,url,path)

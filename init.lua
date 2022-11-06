@@ -1,6 +1,6 @@
 appname="GeekDroid"
-appver="0.1.14"
-appcode="16"
+appver="0.1.15"
+appcode="17"
 packagename="github.znzsofficial.geekdroid"
 theme="Theme_Material_Light_NoActionBar"
 welcome_time="0"

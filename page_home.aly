@@ -41,7 +41,7 @@
                 id="mainProgress",
               },
               {MaterialTextView,
-                textSize="18sp",
+                textSize="12sp",
                 id="optionText",
                 text="Loading...",
                 layout_gravity="center",

@@ -86,7 +86,11 @@ function getFileDrawable(file)
   return BitmapDrawable(activity.getResources(), bitmap)
 end
 
-
+--隐藏输入法
+function hiddenInputMethod(inputid)
+  import "android.view.inputmethod.InputMethodManager"
+  activity.getSystemService(Context.INPUT_METHOD_SERVICE).hideSoftInputFromWindow(inputid.getWindowToken(),0)
+end
 
 layout={
   CoordinatorLayout,
@@ -241,13 +245,15 @@ toolbar.setOnMenuItemClickListener(OnMenuItemClickListener{
             TextInputEditText;
             layout_width="match_parent";
             layout_gravity="center",
+            tooltipText="输入你的JSON源",
             hint="自定义JSON源";
             id="jsonEdit";
           },
           {
             MaterialTextView,
             layout_marginTop="10dp",
-            text="重载页面后生效",
+            tooltipText=url_json,
+            text="当前地址:"..url_json.."\n重启应用后生效",
             Typeface=Typeface.defaultFromStyle(Typeface.BOLD);
           },
         },
@@ -256,6 +262,7 @@ toolbar.setOnMenuItemClickListener(OnMenuItemClickListener{
       .setTitle("更换JSON源")
       .setView(loadlayout(SelectLayout))
       .setPositiveButton("确定",function()
+        hiddenInputMethod(jsonEdit)
       end)
       .show()
       jsonEdit.addTextChangedListener{
@@ -277,6 +284,10 @@ vpg.setOnPageChangeListener(ViewPager.OnPageChangeListener{
     if v~=1 then
       YoYo.with(Techniques.ZoomOut).duration(200).playOn(fab)
       task(200,function()fab.setVisibility(8)end)
+      if v==0 then
+        --显示本地列表
+        loadLocalList()
+      end
      else
       fab.setVisibility(0)
       YoYo.with(Techniques.ZoomIn).duration(200).playOn(fab)
@@ -291,8 +302,6 @@ bottombar.setOnNavigationItemSelectedListener(BottomNavigationView.OnNavigationI
 end})
 --默认主页
 bottombar.setSelectedItemId(2)
---预加载页面
---vpg.setOffscreenPageLimit(2)
 --一行解决控件联动。使用LuaPagerAdapter新增的构造方法，支持在布局表中设置标题!
 mtab.setupWithViewPager(cvpg)
 
@@ -320,7 +329,7 @@ if sp.getString("JSON","")=="" then
   url_json=sp.getString("JSON",nil)
 end
 
-
+--设置部分
 if sp.getString("MYswitch",nil)=="开启" then
   Materialswitch.setChecked(true)
 end
@@ -329,7 +338,6 @@ if sp.getString("autoInstall",nil)=="开启" then
   autoSwitch.setChecked(true)
 end
 
---设置部分
 Materialswitch.setOnCheckedChangeListener{
   onCheckedChanged=function()
     dataNegate("settings","MYswitch")
@@ -580,6 +588,7 @@ Http.get(url_json,nil,'utf8',nil,function(stateCode,json_table)
                 function download_stop(c)--总长度
                   isDownloading=false
                   nowDownloading=nil
+                  cancel_down.setVisibility(8)
                   start_down.Text="安装"
                   TipDown.Text="下载完成："..string.format("%0.2f",c/1024/1024).."MB"
                 end
@@ -610,120 +619,117 @@ Http.get(url_json,nil,'utf8',nil,function(stateCode,json_table)
     recycler_view.setLayoutManager(LinearLayoutManager(this))
     OverScrollDecoratorHelper.setUpOverScroll(recycler_view, OverScrollDecoratorHelper.ORIENTATION_VERTICAL)
    else
-    optionText.Text="连接失败，请检查你的网络设置"
+    optionText.Text="连接失败，请检查你的网络设置或JSON源"
   end
 end)
-
-
-
 
 
 
 --本地RecyclerView部分
-local item_app=
-{LinearLayoutCompat,
-  Orientation=0,
-  layout_width="fill",
-  layout_height="wrap",
-  id="contents",
-  {AppCompatImageView,
-    layout_marginTop="16dp",
-    layout_marginBottom="16dp",
-    layout_marginLeft="8dp",
-    layout_width="42dp",
-    layout_height="42dp",
-    id="icon",
-  },
+function loadLocalList()
+
+  local item_app=
   {LinearLayoutCompat,
-    layout_gravity="center",
-    layout_marginTop="16dp",
-    layout_marginBottom="16dp",
-    layout_marginLeft="8dp",
-    Orientation=1,
-    layout_width="match_parent",
-    layout_height="match_parent",
-    {MaterialTextView,
-      textSize="14sp",
-      id="name",
+    Orientation=0,
+    layout_width="fill",
+    layout_height="wrap",
+    id="contents",
+    {AppCompatImageView,
+      layout_marginTop="16dp",
+      layout_marginBottom="16dp",
+      layout_marginLeft="8dp",
+      layout_width="42dp",
+      layout_height="42dp",
+      id="icon",
     },
-    {MaterialTextView,
-      textSize="12sp",
-      id="packname",
-    },
+    {LinearLayoutCompat,
+      layout_gravity="center",
+      layout_marginTop="16dp",
+      layout_marginBottom="16dp",
+      layout_marginLeft="8dp",
+      Orientation=1,
+      layout_width="match_parent",
+      layout_height="match_parent",
+      {MaterialTextView,
+        textSize="14sp",
+        id="name",
+      },
+      {MaterialTextView,
+        textSize="12sp",
+        id="packname",
+      },
+    }
   }
-}
 
 
+  function CreateAppAdapter(list)
+    AppList=list()
+    adapter_app=LuaCustRecyclerAdapter(AdapterCreator({
+      getItemCount=function()
+        return #AppList
+      end,
+      onCreateViewHolder=function(parent,viewType)
+        local views={}
+        holder=LuaCustRecyclerHolder(loadlayout(item_app,views))
+        holder.view.setTag(views)
+        return holder
+      end,
+      onBindViewHolder=function(holder,position)
+        view=holder.view.getTag()
+        local localapp=AppList[position+1]
+        view.name.Text=localapp.app_name
+        view.packname.Text=localapp.packageName
+        options = RequestOptions()
+        .placeholder(getFileDrawable("preload"))
+        .skipMemoryCache(true)
+        .diskCacheStrategy(DiskCacheStrategy.RESOURCE);
+        Glide.with(activity).asDrawable().load(localapp.app_icon).apply(options).into(view.icon)
+        view.contents.backgroundResource=rippleRes.resourceId
+        view.contents.onClick=function()
+          print(localapp.app_name)
+        end
+      end,
+    }))
+    recycler_app.setAdapter(adapter_app)
+    recycler_app.setLayoutManager(LinearLayoutManager(this))
+    AppoptionText.setVisibility(8)
+    AppProgress.setVisibility(8)
+  end
 
-function CreateAppAdapter(list)
-  AppList=list()
-  adapter_app=LuaCustRecyclerAdapter(AdapterCreator({
-    getItemCount=function()
-      return #AppList
-    end,
-    onCreateViewHolder=function(parent,viewType)
-      local views={}
-      holder=LuaCustRecyclerHolder(loadlayout(item_app,views))
-      holder.view.setTag(views)
-      return holder
-    end,
-    onBindViewHolder=function(holder,position)
-      view=holder.view.getTag()
-      local localapp=AppList[position+1]
-      view.name.Text=localapp.app_name
-      view.packname.Text=localapp.packageName
-      options = RequestOptions()
-      .placeholder(getFileDrawable("preload"))
-      .skipMemoryCache(true)
-      .diskCacheStrategy(DiskCacheStrategy.RESOURCE);
-      Glide.with(activity).asDrawable().load(localapp.app_icon).apply(options).into(view.icon)
-      view.contents.backgroundResource=rippleRes.resourceId
-      view.contents.onClick=function()
-        print(localapp.app_name)
+  thread(function()
+    require "import"
+    import "android.content.pm.ApplicationInfo"
+    local packageMgr = activity.PackageManager
+    local packages = packageMgr.getInstalledPackages(0)
+    local data = {}
+    local count = 0
+
+    while count~= #packages do
+      local packageInfo = packages[count]
+      local appInfo = packageInfo.applicationInfo
+      local packageName = packageInfo.packageName
+      local appInfo = packageInfo.applicationInfo
+
+      -- 排除列表中的系统应用
+      if (appInfo.flags & ApplicationInfo.FLAG_SYSTEM) <= 0 then
+        local label = appInfo.loadLabel(packageMgr)
+        local icon = appInfo.loadIcon(packageMgr)
+        table.insert(data, #data + 1,
+        {app_icon = icon,
+          app_name = label,
+          packageName = packageName,
+        })
       end
-    end,
-  }))
-  recycler_app.setAdapter(adapter_app)
-  recycler_app.setLayoutManager(LinearLayoutManager(this))
-  AppoptionText.setVisibility(8)
-  AppProgress.setVisibility(8)
-end
-
-
-thread(function()
-  require "import"
-  import "android.content.pm.ApplicationInfo"
-  local packageMgr = activity.PackageManager
-  local packages = packageMgr.getInstalledPackages(0)
-  local data = {}
-  local count = 0
-
-  while count~= #packages do
-    local packageInfo = packages[count]
-    local appInfo = packageInfo.applicationInfo
-    local packageName = packageInfo.packageName
-    local appInfo = packageInfo.applicationInfo
-
-    -- 排除列表中的系统应用
-    if (appInfo.flags & ApplicationInfo.FLAG_SYSTEM) <= 0 then
-      local label = appInfo.loadLabel(packageMgr)
-      local icon = appInfo.loadIcon(packageMgr)
-      table.insert(data, #data + 1,
-      {app_icon = icon,
-        app_name = label,
-        packageName = packageName,
-      })
+      count=count+1
     end
-    count=count+1
-  end
 
-  function returnTable()
-    return data
-  end
+    function returnTable()
+      return data
+    end
 
-  call("CreateAppAdapter",returnTable)
-end)
-
+    call("CreateAppAdapter",returnTable)
+  end)
+end
 
 --退出应用
 exit=0

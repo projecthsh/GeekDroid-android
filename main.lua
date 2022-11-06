@@ -682,7 +682,7 @@ function loadLocalList()
         options = RequestOptions()
         .placeholder(getFileDrawable("preload"))
         .skipMemoryCache(true)
-        .diskCacheStrategy(DiskCacheStrategy.RESOURCE);
+        .diskCacheStrategy(DiskCacheStrategy.NONE);
         Glide.with(activity).asDrawable().load(localapp.app_icon).apply(options).into(view.icon)
         view.contents.backgroundResource=rippleRes.resourceId
         view.contents.onClick=function()

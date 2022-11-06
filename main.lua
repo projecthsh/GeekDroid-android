@@ -284,9 +284,11 @@ vpg.setOnPageChangeListener(ViewPager.OnPageChangeListener{
     if v~=1 then
       YoYo.with(Techniques.ZoomOut).duration(200).playOn(fab)
       task(200,function()fab.setVisibility(8)end)
-      if v==0 then
-        --显示本地列表
-        loadLocalList()
+      if v==0 and isLoaded~=true then
+          --显示本地列表
+          isLoaded=true
+          loadLocalList()
+        
       end
      else
       fab.setVisibility(0)
@@ -635,17 +637,17 @@ function loadLocalList()
     layout_height="wrap",
     id="contents",
     {AppCompatImageView,
-      layout_marginTop="16dp",
-      layout_marginBottom="16dp",
-      layout_marginLeft="8dp",
-      layout_width="42dp",
-      layout_height="42dp",
+      layout_marginTop="12dp",
+      layout_marginBottom="12dp",
+      layout_marginLeft="16dp",
+      layout_width="38dp",
+      layout_height="38dp",
       id="icon",
     },
     {LinearLayoutCompat,
       layout_gravity="center",
-      layout_marginTop="16dp",
-      layout_marginBottom="16dp",
+      layout_marginTop="12dp",
+      layout_marginBottom="12dp",
       layout_marginLeft="8dp",
       Orientation=1,
       layout_width="match_parent",

@@ -29,7 +29,7 @@
         layout_height="wrap",
         {
           MaterialTextView,
-          text="启用MaterialYou动态取色",
+          text="启用Monet动态取色",
           textStyle="bold",
           textSize="18sp",
         },

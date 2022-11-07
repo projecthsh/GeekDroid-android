@@ -56,6 +56,7 @@ import {
 
   "mods.fun",
   "mods.setting",
+  "mods.popup",
 }
 
 --设置主题
@@ -285,10 +286,10 @@ vpg.setOnPageChangeListener(ViewPager.OnPageChangeListener{
       YoYo.with(Techniques.ZoomOut).duration(200).playOn(fab)
       task(200,function()fab.setVisibility(8)end)
       if v==0 and isLoaded~=true then
-          --显示本地列表
-          isLoaded=true
-          loadLocalList()
-        
+        --显示本地列表
+        isLoaded=true
+        loadLocalList()
+
       end
      else
       fab.setVisibility(0)
@@ -687,8 +688,19 @@ function loadLocalList()
         .diskCacheStrategy(DiskCacheStrategy.NONE);
         Glide.with(activity).asDrawable().load(localapp.app_icon).apply(options).into(view.icon)
         view.contents.backgroundResource=rippleRes.resourceId
-        view.contents.onClick=function()
-          print(localapp.app_name)
+        view.contents.onClick=function(v)
+          local popMenu={
+            ["更多"]={
+              ["暂无"]=function()
+              end,
+            },
+            ["打开"]=function()
+              manager = activity.getPackageManager()
+              open = manager.getLaunchIntentForPackage(localapp.packageName)
+              this.startActivity(open)
+            end,
+          }
+          showPopMenu(popMenu,v,localapp.app_name)
         end
       end,
     }))

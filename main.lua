@@ -289,7 +289,7 @@ vpg.setOnPageChangeListener(ViewPager.OnPageChangeListener{
         --显示本地列表
         isLoaded=true
         loadLocalList()
-
+        collectgarbage("collect")
       end
      else
       fab.setVisibility(0)

@@ -145,7 +145,7 @@ layout={
           "page_file",
           "page_find",
           "page_home",
-          "page_user",
+          "page_json",
           "page_setting",
         },
       },
@@ -187,14 +187,14 @@ bottombar.layoutParams.setBehavior(bottombarBehavior())
 bottombar.setLabelVisibilityMode(0)--设置tab样式
 
 --设置底栏项目
-local bottomMenu={"本地","发现","主页","我的","设置"}
+local bottomMenu={"本地","发现","主页","创建","设置"}
 for key,v in ipairs(bottomMenu) do
   local itemK=key-1
   --参数分别对应groupid homeid order name
   bottombar.menu.add(0,itemK,itemK,v)
 end
 --设置底栏图标
-local bottomIcon={"content-save","find-replace","home","tooltip-account","cog"}
+local bottomIcon={"content-save","find-replace","home","application-cog","cog"}
 for key,v in ipairs(bottomIcon) do
   local itemK=key-1
   --这里findItem取的是home id
@@ -319,11 +319,12 @@ function onClickFab()
   .show()
 end
 
---尝试增大TextInputLayout圆角，虽然不增大也挺好看的
-local corii={dp2px(24),dp2px(24),dp2px(24),dp2px(24)}
+--[[尝试增大TextInputLayout圆角，虽然不增大也挺好看的
+local corii={dp2px(16),dp2px(16),dp2px(16),dp2px(16)}
 t1.setBoxCornerRadii(table.unpack(corii))
 t2.setBoxCornerRadii(table.unpack(corii))
-
+t3.setBoxCornerRadii(table.unpack(corii))
+]]
 
 --设置初始JSON地址
 if sp.getString("JSON","")=="" then
@@ -358,7 +359,7 @@ autoSwitch.setOnCheckedChangeListener{
 licenseShow.onClick=function(v)
   MaterialAlertDialogBuilder(this)
   .setTitle("开源许可")
-  .setMessage(getDocument("apache"))
+  .setMessage(getDocument("Lua").."\n\n"..getDocument("LuaJava").."\n\n"..getDocument("androlua"))
   .setPositiveButton("确定",nil)
   .show()
 end

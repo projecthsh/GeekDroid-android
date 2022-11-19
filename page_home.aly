@@ -43,7 +43,7 @@
               {MaterialTextView,
                 textSize="12sp",
                 id="optionText",
-                text="Loading...",
+                text="加载中...",
                 layout_gravity="center",
               },
             },

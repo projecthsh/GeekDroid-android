@@ -57,6 +57,7 @@ import {
   "mods.fun",
   "mods.setting",
   "mods.popup",
+  "mods.document",
 }
 
 --设置主题
@@ -354,6 +355,21 @@ autoSwitch.setOnCheckedChangeListener{
   end
 }
 
+licenseShow.onClick=function(v)
+  MaterialAlertDialogBuilder(this)
+  .setTitle("开源许可")
+  .setMessage(getDocument("apache"))
+  .setPositiveButton("确定",nil)
+  .show()
+end
+
+documentShow.onClick=function(v)
+  MaterialAlertDialogBuilder(this)
+  .setTitle("使用协议和隐私政策")
+  .setMessage(getDocument("policy"))
+  .setPositiveButton("确定",nil)
+  .show()
+end
 
 cjson=require "cjson"
 --主RecyclerAdapter部分

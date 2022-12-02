@@ -4,6 +4,7 @@ import {
   "android.widget.*",
   "android.view.*",
   "android.content.Intent",
+  "android.content.res.ColorStateList",
   "android.graphics.BitmapFactory",
   "android.graphics.drawable.GradientDrawable$Orientation",
   "android.graphics.drawable.Drawable",
@@ -52,159 +53,19 @@ import {
   "com.bumptech.glide.Glide",
   "com.bumptech.glide.request.RequestOptions",
   "com.bumptech.glide.load.engine.DiskCacheStrategy",
-  "me.everything.android.ui.overscroll.*",
 
-  "mods.fun",
-  "mods.setting",
-  "mods.popup",
-  "mods.document",
+  "mods.basicFunction",
+  "mods.settingFunction",
+  "mods.CustomPopupWindow",
+  "mods.PrivacyDocument",
+
+  "core.loadColor",
+  "core.loadmLayout",
+  "core.loadSettings",
+
 }
 
---设置主题
-activity.setTheme(R.style.Theme_ReOpenLua_Material3)
-if sp.getString("MYswitch",nil)=="开启" then
-  import"com.google.android.material.color.DynamicColors"
-  DynamicColors.applyIfAvailable(this)
-end
 
---初始化颜色
---为了使深色主题效果正常，请不要使用硬编码颜色!
-local themeUtil=LuaThemeUtil(this)
-MDC_R=luajava.bindClass"com.google.android.material.R"
-surfaceColor=themeUtil.getColorSurface()
-backgroundc=themeUtil.getColorBackground()
-surfaceVar=themeUtil.getColorSurfaceVariant()
-titleColor=themeUtil.getTitleTextColor()
-primaryc=themeUtil.getColorPrimary()
-primarycVar=themeUtil.getColorPrimaryVariant()
-
---初始化ripple
-rippleRes = TypedValue()
-activity.getTheme().resolveAttribute(android.R.attr.selectableItemBackground, rippleRes, true)
-
-function getFileDrawable(file)
-  fis = FileInputStream(activity.getLuaDir().."/res/"..file..".png")
-  bitmap = BitmapFactory.decodeStream(fis)
-  return BitmapDrawable(activity.getResources(), bitmap)
-end
-
---隐藏输入法
-function hiddenInputMethod(inputid)
-  import "android.view.inputmethod.InputMethodManager"
-  activity.getSystemService(Context.INPUT_METHOD_SERVICE).hideSoftInputFromWindow(inputid.getWindowToken(),0)
-end
-
-layout={
-  CoordinatorLayout,
-  layout_width="fill",
-  layout_height="fill",
-  {
-    AppBarLayout,
-    layout_width="fill",
-    layout_height="100dp",
-    {
-      CollapsingToolbarLayout,
-      layout_width="fill",
-      layout_height="fill",
-      layout_scrollFlags="scroll|exitUtilCollapsed|snap",
-      title="GeekDroid",
-      background=ColorDrawable(surfaceVar),
-      --expandedTitleColor="#FFFFFF",
-      --collapsedTitleTextColor="#FFFFFF",
-      --展开 和 收起 时的标题颜色
-      {
-        MaterialToolbar,
-        id="toolbar",
-        layout_collapseMode="pin",
-        background=ColorDrawable(surfaceVar),
-        layout_width="fill",
-        layout_height="56dp",
-      },
-    },
-  },
-  {
-    NestedScrollView,
-    layout_width="fill",
-    layout_height="fill",
-    layout_behavior="@string/appbar_scrolling_view_behavior",
-    fillViewport="true",
-    backgroundColor=backgroundc,
-    {
-      LinearLayoutCompat,
-      id="content",
-      layout_width="fill",
-      layout_height="fill",
-      orientation="vertical",
-      --[
-      {
-        ViewPager,
-        id="vpg",
-        layout_width="fill",
-        layout_height="fill",
-        pages={
-          "page_file",
-          "page_find",
-          "page_home",
-          "page_json",
-          "page_setting",
-        },
-      },
-    },
-  },
-  {
-    BottomNavigationView,
-    id="bottombar",
-    layout_gravity="bottom",
-    layout_width="fill",
-    layout_height="wrap",
-  },
-  {
-    ExtendedFloatingActionButton,
-    id="fab",
-    text="More",
-    onClick="onClickFab",
-    icon=getFileDrawable("outline_info_black_24dp"),
-    layout_gravity="bottom|end",
-    layout_marginBottom="110dp",
-    layout_marginEnd="16dp",
-  },
-}
-
---设置布局
-activity.setContentView(loadlayout(layout))
---隐藏自带ActionBar
-activity.getSupportActionBar().hide()
---配置状态栏颜色
-local window = activity.getWindow()
-window.setStatusBarColor(surfaceVar)
-window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
-window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS)
-window.getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR)
-window.setNavigationBarColor(surfaceVar)
-
-local bottombarBehavior=luajava.bindClass"com.google.android.material.behavior.HideBottomViewOnScrollBehavior"
-bottombar.layoutParams.setBehavior(bottombarBehavior())
-bottombar.setLabelVisibilityMode(0)--设置tab样式
-
---设置底栏项目
-local bottomMenu={"本地","发现","主页","创建","设置"}
-for key,v in ipairs(bottomMenu) do
-  local itemK=key-1
-  --参数分别对应groupid homeid order name
-  bottombar.menu.add(0,itemK,itemK,v)
-end
---设置底栏图标
-local bottomIcon={"content-save","find-replace","home","application-cog","cog"}
-for key,v in ipairs(bottomIcon) do
-  local itemK=key-1
-  --这里findItem取的是home id
-  bottombar.menu.findItem(itemK).setIcon(getFileDrawable(v))
-end
-
---MaterialToolbar比普通Toolbar更强大的地方在于，它可以脱离Activity使用
-local addToolbarMenu=lambda a,b,c,name:toolbar.menu.add(a,b,c,name)
-addToolbarMenu(0,0,0,"换源")
-addToolbarMenu(0,1,1,"退出")
 
 --顶栏菜单点击监听
 import "androidx.appcompat.widget.Toolbar$OnMenuItemClickListener"
@@ -254,9 +115,13 @@ toolbar.setOnMenuItemClickListener(OnMenuItemClickListener{
           {
             MaterialTextView,
             layout_marginTop="10dp",
+            textSize="10sp",
             tooltipText=url_json,
-            text="当前地址:"..url_json.."\n重启应用后生效",
+            text="当前地址:\n"..url_json.."\n\n设置重启应用后生效",
             Typeface=Typeface.defaultFromStyle(Typeface.BOLD);
+            onClick=function()
+              activity.getSystemService(Context.CLIPBOARD_SERVICE).setText(tostring(url_json))
+            end
           },
         },
       }
@@ -264,7 +129,7 @@ toolbar.setOnMenuItemClickListener(OnMenuItemClickListener{
       .setTitle("更换JSON源")
       .setView(loadlayout(SelectLayout))
       .setPositiveButton("确定",function()
-        hiddenInputMethod(jsonEdit)
+        hideInput(jsonEdit)
       end)
       .show()
       jsonEdit.addTextChangedListener{
@@ -309,15 +174,64 @@ bottombar.setSelectedItemId(2)
 --一行解决控件联动。使用LuaPagerAdapter新增的构造方法，支持在布局表中设置标题!
 mtab.setupWithViewPager(cvpg)
 
---悬浮按钮点击事件
-function onClickFab()
+
+SelectDownload.onClick=function()
+  local onSelectLayout=
+  {
+    LinearLayoutCompat,
+    orientation="vertical",
+    layout_width="match_parent";
+    padding="20dp",
+    {
+      TextInputEditText;
+      layout_width="match_parent";
+      layout_gravity="center",
+      tooltipText="输入下载路径",
+      text=sp.getString("FileAddress",""),
+      id="downloadEdit";
+    },
+    {
+      MaterialTextView,
+      layout_marginTop="10dp",
+      tooltipText=sp.getString("FileAddress",""),
+      text="当前路径为"..sp.getString("FileAddress","").."\n仅支持下载到Android内部存储\n\n对于Android10以上用户建议通过SAF进一步授予对应文件夹权限",
+    },
+    {
+      MaterialTextView,
+      layout_marginTop="10dp",
+      text="点击此处打开SAF框架",
+      textColor=primaryc,
+      backgroundResource=rippleRes.resourceId,
+      Typeface=Typeface.defaultFromStyle(Typeface.BOLD);
+      onClick=function()
+        import{
+          "android.net.Uri",
+          "android.provider.DocumentsContract",
+          "androidx.documentfile.provider.DocumentFile",
+        }
+        uri=Uri.parse("content://com.android.externalstorage.documents/tree/primary%3A")
+        intent=Intent(Intent.ACTION_OPEN_DOCUMENT_TREE)
+        intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION|Intent.FLAG_GRANT_WRITE_URI_PERMISSION|Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION|Intent.FLAG_GRANT_PREFIX_URI_PERMISSION)
+        intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI,DocumentFile.fromTreeUri(activity,uri).getUri())
+        activity.startActivity(intent)
+      end,
+    },
+  }
   MaterialAlertDialogBuilder(this)
-  .setTitle("More")
-  .setIcon(getFileDrawable("outline_info_black_24dp"))
-  .setMessage("")
-  .setPositiveButton("知道了",nil)
+  .setTitle("文件下载路径")
+  .setView(loadlayout(onSelectLayout))
+  .setPositiveButton("确定",function()
+    hideInput(downloadEdit)
+    SelectDownload.getChildAt(0).getChildAt(1).setText("当前下载路径"..sp.getString("FileAddress",""))
+  end)
   .show()
+  downloadEdit.addTextChangedListener{
+    onTextChanged=function()
+      dataInput(tostring(downloadEdit.getText()),"settings","FileAddress")
+    end
+  }
 end
+
 
 --[[尝试增大TextInputLayout圆角，虽然不增大也挺好看的
 local corii={dp2px(16),dp2px(16),dp2px(16),dp2px(16)}
@@ -325,23 +239,6 @@ t1.setBoxCornerRadii(table.unpack(corii))
 t2.setBoxCornerRadii(table.unpack(corii))
 t3.setBoxCornerRadii(table.unpack(corii))
 ]]
-
---设置初始JSON地址
-if sp.getString("JSON","")=="" then
-  dataInput("https://raw.githubusercontent.com/znzsofficial/Project-HSH/master/index-1.json","settings","JSON")
-  url_json="https://raw.githubusercontent.com/znzsofficial/Project-HSH/master/index-1.json"
- else
-  url_json=sp.getString("JSON",nil)
-end
-
---设置部分
-if sp.getString("MYswitch",nil)=="开启" then
-  Materialswitch.setChecked(true)
-end
-
-if sp.getString("autoInstall",nil)=="开启" then
-  autoSwitch.setChecked(true)
-end
 
 Materialswitch.setOnCheckedChangeListener{
   onCheckedChanged=function()
@@ -357,17 +254,62 @@ autoSwitch.setOnCheckedChangeListener{
 }
 
 licenseShow.onClick=function(v)
+  local MarkDownLayout=
+  {
+    LinearLayoutCompat,
+    layout_width="match_parent";
+    padding="12dp";
+    {
+      MaterialCardView,
+      radius="16dp",
+      layout_width="match_parent";
+      {
+        LuaWebView;
+        id="WebView";
+        layout_width="-1";
+        layout_height="-1";
+        ProgressBarEnabled=false,
+      },
+    },
+  }
   MaterialAlertDialogBuilder(this)
   .setTitle("开源许可")
-  .setMessage(getDocument("Lua").."\n\n"..getDocument("LuaJava").."\n\n"..getDocument("androlua"))
+  .setView(loadlayout(MarkDownLayout))
   .setPositiveButton("确定",nil)
   .show()
+  rawio=require "rawio"
+  local Markdown4jProcessor=luajava.bindClass("org.markdown4j.Markdown4jProcessor")
+  local content = rawio.iotsread(activity.getLuaDir().."/license.md","r")
+  WebView.loadDataWithBaseURL("",Markdown4jProcessor().process(content),"text/html","utf-8",nil)
+  function isNightMode()
+    local configuration = activity.getResources().getConfiguration();
+    return configuration.uiMode+1==configuration.UI_MODE_NIGHT_YES or configuration.uiMode-1==configuration.UI_MODE_NIGHT_YES or configuration.uiMode==configuration.UI_MODE_NIGHT_YES
+  end
+  WebView.setWebViewClient({
+    onPageFinished = function(view,url)
+      if isNightMode() then
+        WebView.evaluateJavascript([[javascript:(function(){var styleElem=null,doc=document,ie=doc.all,fontColor=50,sel="body,body *";styleElem=createCSS(sel,setStyle(fontColor),styleElem);function setStyle(fontColor){var colorArr=[fontColor,fontColor,fontColor];return"background-color:#212121 !important;color:RGB("+colorArr.join("%,")+"%) !important;"}function createCSS(sel,decl,styleElem){var doc=document,h=doc.getElementsByTagName("head")[0],styleElem=styleElem;if(!styleElem){s=doc.createElement("style");s.setAttribute("type","text/css");styleElem=ie?doc.styleSheets[doc.styleSheets.length-1]:h.appendChild(s)}if(ie){styleElem.addRule(sel,decl)}else{styleElem.innerHTML="";styleElem.appendChild(doc.createTextNode(sel+" {"+decl+"}"))}return styleElem}})();]],nil)
+       else
+      end
+    end,
+    shouldOverrideUrlLoading=function(view,url)
+      local intent = Intent()
+      intent.setAction("android.intent.action.VIEW")
+      local content_url = Uri.parse(url)
+      intent.setData(content_url)
+      activity.startActivity(intent)
+      return true
+    end
+  })
+  WebView.onLongClick = function()
+    return true
+  end
 end
 
 documentShow.onClick=function(v)
   MaterialAlertDialogBuilder(this)
   .setTitle("使用协议和隐私政策")
-  .setMessage(getDocument("policy"))
+  .setMessage(getPrivatePrivacy())
   .setPositiveButton("确定",nil)
   .show()
 end
@@ -419,9 +361,19 @@ local Mitem={
 };
 
 
-Http.get(url_json,nil,'utf8',nil,function(stateCode,json_table)
-  if stateCode ==200 then
-    superTable=cjson.decode(json_table)
+local Volley,VolleyStringRequest,VolleyRequest,VolleyResponse=luajava.bindClass("com.android.volley.toolbox.Volley"),luajava.bindClass("com.android.volley.toolbox.StringRequest"),luajava.bindClass("com.android.volley.Request"),luajava.bindClass("com.android.volley.Response")
+
+queue = Volley.newRequestQueue(this);
+
+url = url_json;
+
+stringRequest = VolleyStringRequest(VolleyRequest.Method.GET, url,
+
+VolleyResponse.Listener{
+
+  onResponse=function(response) {
+
+    superTable=cjson.decode(response)
     mainProgress.setVisibility(8)
     optionText.setVisibility(8)
 
@@ -457,6 +409,9 @@ Http.get(url_json,nil,'utf8',nil,function(stateCode,json_table)
             .setAction("下载", View.OnClickListener{
               onClick=function(v)
 
+                if isDownloading~=true then
+                  isDialogCanceled=nil
+                end
 
                 downloadLayout=
                 {
@@ -576,20 +531,34 @@ Http.get(url_json,nil,'utf8',nil,function(stateCode,json_table)
                 end
 
                 cancel_down.onClick=function()
+                  if isDownloading==true then
+                    isDialogCanceled=true
+                  end
                   dialog.cancel()
                 end
 
                 copy_down.onClick=function()
-                  Toast.makeText(activity, "已复制成功",Toast.LENGTH_SHORT).show()
                   activity.getSystemService(Context.CLIPBOARD_SERVICE).setText(app.link)
                 end
 
                 start_down.onClick=function()
                   if start_down.Text=="下载" then
-                    TipDown.Text="下载进程正在启动中..."
-                    filePath="/storage/emulated/0/Download/"..app.name..".apk"
-                    download(app.link,filePath)
-                    progress_down.setVisibility(0)
+                    start_down.Text="..."
+                    TipDown.Text="正在检查网络连接..."
+                    Http.get(app.link,nil,'utf8',nil,function(stateCode,json_table)
+                      if stateCode ~=200 then
+                        start_down.Text="下载"
+                        TipDown.Text="连接失败，请检查你的网络设置"
+                       else
+                        TipDown.Text="下载进程正在启动中..."
+                        sp = activity.getSharedPreferences("settings",Context.MODE_PRIVATE)
+                        filePath=sp.getString("FileAddress",nil)..app.name..".apk"
+                        import "java.io.File"
+                        File(sp.getString("FileAddress",nil)).mkdirs()
+                        download(app.link,filePath)
+                        progress_down.setVisibility(0)
+                      end
+                    end)
                    elseif start_down.Text=="安装" then
                     activity.installApk(filePath)
                    else
@@ -611,6 +580,16 @@ Http.get(url_json,nil,'utf8',nil,function(stateCode,json_table)
                   cancel_down.setVisibility(8)
                   start_down.Text="安装"
                   TipDown.Text="下载完成："..string.format("%0.2f",c/1024/1024).."MB"
+                  if isDialogCanceled==true then
+                    Snackbar.make(vpg,app.name.."下载完成",Snackbar.LENGTH_SHORT)
+                    .setAnchorView(bottombar)
+                    .setAction("安装", View.OnClickListener{
+                      onClick=function(v)
+                        activity.installApk(filePath)
+                      end
+                    }).show();
+                  end
+                  isDialogCanceled=nil
                 end
 
               end
@@ -637,11 +616,24 @@ Http.get(url_json,nil,'utf8',nil,function(stateCode,json_table)
 
     recycler_view.setAdapter(adapterm)
     recycler_view.setLayoutManager(LinearLayoutManager(this))
+    local OverScrollDecoratorHelper=luajava.bindClass("me.everything.android.ui.overscroll.OverScrollDecoratorHelper")
     OverScrollDecoratorHelper.setUpOverScroll(recycler_view, OverScrollDecoratorHelper.ORIENTATION_VERTICAL)
-   else
+
+  }
+},
+
+VolleyResponse.ErrorListener{
+
+  onErrorResponse=function(error) {
+
     optionText.Text="连接失败，请检查你的网络设置或JSON源"
-  end
-end)
+  }
+
+});
+
+queue.add(stringRequest);
+
+
 
 
 

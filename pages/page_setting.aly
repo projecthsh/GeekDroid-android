@@ -124,11 +124,8 @@
       },
       {
         MaterialSwitch,
-        id="shizukuSwitch",
+        id="suSwitch",
         paddingRight="16dp",
-        onClick=function(v)
-          print("按钮状态 "..tostring(v.isChecked()))
-        end,
       },
     },
     {
@@ -187,21 +184,7 @@
       gravity="center|start",
       backgroundResource=rippleRes.resourceId,
       onClick=function(v)
-        --动态申请所有权限
-        function ApplicationAuthority()
-          local mAppPermissions = ArrayList()
-          local mAppPermissionsTable = luajava.astable(activity.getPackageManager().getPackageInfo(activity.getPackageName(),PackageManager.GET_PERMISSIONS).requestedPermissions)
-          for k,v in pairs(mAppPermissionsTable) do
-            mAppPermissions.add(v)
-          end
-          local size = mAppPermissions.size()
-          local mArray = mAppPermissions.toArray(String[size])
-          activity.requestPermissions(mArray,0)
-        end
         ApplicationAuthority()
-        --[[权限申请回调
-        onRequestPermissionsResult=function(r,p,g)
-        end]]
       end,
       {
         MaterialTextView,
@@ -263,7 +246,7 @@
     {
       LinearLayoutCompat,
       paddingLeft="16dp",
-      layout_marginBottom="20%h",
+      layout_marginBottom="140dp",
       layout_width="fill",
       layout_height="wrap",
       gravity="center|start",

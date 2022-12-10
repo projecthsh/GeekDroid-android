@@ -63,6 +63,21 @@
       },
     },
     {
+      TextInputLayout,
+      id="t4",
+      hint="图标",
+      layout_marginTop="12dp",
+      boxBackgroundMode=TextInputLayout.BOX_BACKGROUND_OUTLINE,
+      layout_width="fill",
+      {
+        TextInputEditText,
+        padding="16dp";
+        style=MDC_R.style.Widget_Material3_TextInputEditText_OutlinedBox_Dense,
+        textSize=16,
+        layout_width="fill",
+      },
+    },
+    {
       LinearLayoutCompat,
       padding="16dp",
       gravity="center",
@@ -70,7 +85,7 @@
       layout_height="fill",
       {
         TextInputLayout,
-        id="t4",
+        id="t5",
         hint="版本",
         layout_gravity="center|start",
         boxBackgroundMode=TextInputLayout.BOX_BACKGROUND_OUTLINE,
@@ -84,7 +99,7 @@
       },
       {
         TextInputLayout,
-        id="t5",
+        id="t6",
         hint="架构",
         paddingLeft="5%w",
         layout_gravity="center|start",

@@ -3,6 +3,7 @@ import {
   "android.os.*",
   "android.widget.*",
   "android.view.*",
+  "android.animation.LayoutTransition",
   "android.content.Intent",
   "android.content.res.ColorStateList",
   "android.graphics.BitmapFactory",
@@ -11,11 +12,12 @@ import {
   "android.graphics.drawable.BitmapDrawable",
   "android.graphics.drawable.ColorDrawable",
   "android.graphics.Typeface",
-  "android.animation.LayoutTransition",
   "android.util.TypedValue",
   "android.net.Uri",
   "java.io.FileInputStream",
 
+  "androidx.appcompat.widget.LinearLayoutCompat",
+  "androidx.appcompat.widget.AppCompatImageView",
   "androidx.core.widget.NestedScrollView",
   "androidx.coordinatorlayout.widget.CoordinatorLayout",
   "androidx.viewpager.widget.ViewPager",
@@ -23,8 +25,6 @@ import {
   "androidx.recyclerview.widget.RecyclerView",
   "androidx.recyclerview.widget.LinearLayoutManager",
   "androidx.swiperefreshlayout.widget.SwipeRefreshLayout",
-  "androidx.appcompat.widget.LinearLayoutCompat",
-  "androidx.appcompat.widget.AppCompatImageView",
 
   "com.google.android.material.appbar.AppBarLayout",
   "com.google.android.material.appbar.MaterialToolbar",
@@ -43,8 +43,8 @@ import {
   "com.google.android.material.textfield.TextInputEditText",
   "com.google.android.material.textfield.TextInputLayout",
 
-  "github.daisukiKaffuChino.LuaCustRecyclerAdapter",
   "github.daisukiKaffuChino.AdapterCreator",
+  "github.daisukiKaffuChino.LuaCustRecyclerAdapter",
   "github.daisukiKaffuChino.LuaCustRecyclerHolder",
   "github.daisukiKaffuChino.utils.LuaThemeUtil",
 
@@ -54,6 +54,7 @@ import {
   "com.bumptech.glide.request.RequestOptions",
   "com.bumptech.glide.load.engine.DiskCacheStrategy",
 
+  "mods.Permission",
   "mods.basicFunction",
   "mods.settingFunction",
   "mods.CustomPopupWindow",
@@ -64,7 +65,6 @@ import {
   "core.loadSettings",
 
 }
-
 
 
 --顶栏菜单点击监听
@@ -85,7 +85,7 @@ toolbar.setOnMenuItemClickListener(OnMenuItemClickListener{
           layout_margin="20dp",
           {
             MaterialRadioButton,
-            text="Project HSH",
+            text="Project HSH(默认)",
             onClick=function()
               dataInput("https://raw.githubusercontent.com/projecthsh/Project-HSH/master/index-1.json","settings","JSON")
             end,
@@ -99,7 +99,7 @@ toolbar.setOnMenuItemClickListener(OnMenuItemClickListener{
           },
           {
             MaterialRadioButton,
-            text="znzsofficial(默认)",
+            text="znzsofficial",
             onClick=function()
               dataInput("https://raw.githubusercontent.com/znzsofficial/Project-HSH/master/index-1.json","settings","JSON")
             end,
@@ -243,13 +243,19 @@ t3.setBoxCornerRadii(table.unpack(corii))
 Materialswitch.setOnCheckedChangeListener{
   onCheckedChanged=function()
     dataNegate("settings","MYswitch")
-    print("切换主题后需要重载页面以生效")
+    print("切换后需要重启应用以生效")
   end
 }
 
 autoSwitch.setOnCheckedChangeListener{
   onCheckedChanged=function()
     dataNegate("settings","autoInstall")
+  end
+}
+
+suSwitch.setOnCheckedChangeListener{
+  onCheckedChanged=function()
+    dataNegate("settings","suInstall")
   end
 }
 
@@ -360,279 +366,289 @@ local Mitem={
   },
 };
 
+superTable={}
+adapterm=LuaCustRecyclerAdapter(AdapterCreator({
+  getItemCount=function()
+    return #superTable
+  end,
+  getItemViewType=function(position)
+    return superTable[position+1].type
+  end,
+  onCreateViewHolder=function(parent,viewType)
+    local views={}
+    holder=LuaCustRecyclerHolder(loadlayout(Mitem,views))
+    holder.view.setTag(views)
+    return holder
+  end,
+  onBindViewHolder=function(holder,position)
+  view=holder.view.getTag()
+  local app=superTable[position+1]
+  view.title.Text=app.name
+  view.profile.Text=app.desc
+  view.pack.Text=app.packge
+  options = RequestOptions()
+  .placeholder(getFileDrawable("preload"))
+  .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC);
+  Glide.with(activity).asDrawable().load(app.logo).apply(options).into(view.icon)
+  view.contents.backgroundResource=rippleRes.resourceId
+  view.contents.onClick=function(v)
+
+  local popMenu={
+    ["下载"]=function()
+      if app.link=="" or app.link==nil then
+        print(app.name.."暂无下载链接")
+       else
+        if isDownloading==true then
+          if nowDownloading~=app.name then
+            print(nowDownloading.."下载任务正在进行")
+            return true
+           else
+            CustomDownloader()
+          end
+         else
+          CustomDownloader()
+        end
+      end
+    end,
+    ["详情"]={
+      ["暂无"]=function()
+      end,
+    },
+  }
+  showPopMenu(popMenu,v,app.name)
+
+  function CustomDownloader(v)
+    local flag = checkPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+    if flag~= true then
+      requestPermissions(requirePermissions)
+      print("请授予存储权限后尝试下载")
+      return true
+    end
+
+    isDialogCanceled=nil
+
+    downloadLayout=
+    {
+      LinearLayoutCompat,
+      orientation='vertical',
+      layout_width='fill',
+      layout_height='wrap',
+      padding="10dp",
+      {
+        LinearLayoutCompat,
+        orientation='horizontal',
+        gravity='center|left';
+        layout_width='fill',
+        layout_height='fill',
+        {
+          LinearLayoutCompat,
+          orientation='vertical',
+          layout_width='fill',
+          layout_weight='1';
+          layout_marginLeft='10dp';
+          gravity='center|left';
+          {
+            MaterialTextView;
+            Typeface=Typeface.defaultFromStyle(Typeface.BOLD);
+            textSize='12dp';
+            id="TipDown";
+          };
+        };
+      };
+      {
+        ProgressBar;
+        layout_width='fill';
+        layout_marginLeft='16dp';
+        layout_marginRight='16dp';
+        id="progress_down",
+        style='?android:attr/progressBarStyleHorizontal';
+      };
+      {
+        LinearLayoutCompat,
+        orientation='horizontal',
+        layout_width='fill',
+        layout_height='wrap',
+        gravity="center",
+        padding="10dp",
+        {
+          MaterialButtonToggleGroup,
+          id="btnGroup",
+          layout_width="wrap",
+          layout_height="wrap",
+          layout_gravity="center",
+          singleSelection=true,
+          SelectionRequired=true,
+          {
+            MaterialButton;
+            gravity='center';
+            text='隐藏';
+            textSize='12dp';
+            id="cancel_down",
+          };
+          {
+            MaterialButton;
+            gravity='center';
+            text='复制链接';
+            textSize='12dp';
+            id="copy_down",
+          };
+          {
+            MaterialButton;
+            gravity='center';
+            text='下载';
+            textSize='12dp';
+            id="start_down",
+          };
+        },
+      },
+    };
+
+
+    dialog=MaterialAlertDialogBuilder(this)
+    .setTitle(app.name.."下载")
+    .setView(loadlayout(downloadLayout))
+    .show()
+
+
+    function trans(url,path,appname)
+      require "import"
+      import "java.net.URL"
+      local ur =URL(url)
+      import "java.io.File"
+      file =File(path);
+      con = ur.openConnection();
+      co = con.getContentLength();
+      is = con.getInputStream();
+      bs = byte[1024]
+      local len,read=0,0
+      import "java.io.FileOutputStream"
+      wj= FileOutputStream(path);
+      len = is.read(bs)
+      while len~=-1 do
+        wj.write(bs, 0, len);
+        read=read+len
+        pcall(call,"download_ing",read,co)
+        len = is.read(bs)
+      end
+      wj.close();
+      is.close();
+      pcall(call,"download_stop",co)
+      import "android.content.Context"
+      sp = activity.getSharedPreferences("settings",Context.MODE_PRIVATE)
+      if sp.getString("autoInstall",nil)=="开启" then
+        if sp.getString("suInstall",nil)=="开启" then
+          io.popen("su -c 'cp -rf "..path.." /data/local/tmp/"..appname..".apk".."'")
+          io.popen("su -c 'pm install ".."/data/local/tmp/"..appname..".apk".."'")
+         else
+          activity.installApk(path)
+        end
+       else
+      end
+    end
+    function download(url,path,appname)
+      thread(trans,url,path,appname)
+    end
+
+    cancel_down.onClick=function()
+      if isDownloading==true then
+        isDialogCanceled=true
+      end
+      dialog.cancel()
+    end
+
+    copy_down.onClick=function()
+      activity.getSystemService(Context.CLIPBOARD_SERVICE).setText(app.link)
+    end
+
+    start_down.onClick=function()
+      if start_down.Text=="下载" then
+        start_down.Text="..."
+        TipDown.Text="正在检查网络连接..."
+        local Volley,VolleyStringRequest,VolleyRequest,VolleyResponse=luajava.bindClass("com.android.volley.toolbox.Volley"),luajava.bindClass("com.android.volley.toolbox.StringRequest"),luajava.bindClass("com.android.volley.Request"),luajava.bindClass("com.android.volley.Response")
+        local newRequest = VolleyStringRequest(VolleyRequest.Method.GET, url_json,
+        VolleyResponse.Listener{
+          onResponse=function(response) {
+              TipDown.Text="下载进程正在启动中..."
+              sp = activity.getSharedPreferences("settings",Context.MODE_PRIVATE)
+              filePath=sp.getString("FileAddress",nil)..app.name..".apk"
+              import "java.io.File"
+              File(sp.getString("FileAddress",nil)).mkdirs()
+              download(app.link,filePath,app.name)
+              progress_down.setVisibility(0)
+            }
+          },
+          VolleyResponse.ErrorListener{
+            onErrorResponse=function(error) {
+                start_down.Text="下载"
+                TipDown.Text="连接失败，请检查你的网络设置"
+              }
+            });
+            queue.add(newRequest);
+           elseif start_down.Text=="安装" then
+            activity.installApk(filePath)
+           else
+          end
+        end
+
+        function download_ing(a,b)--已下载，总长度(byte)
+          isDownloading=true
+          nowDownloading=app.name
+          TipDown.Text="正在下载："..string.format("%0.2f",a/1024/1024).."MB/"..string.format("%0.2f",b/1024/1024).."MB"
+          progress_down.progress=(a/b*100)
+          start_down.Text=string.format('%.2f',(a/b*100)).."%"
+        end
+
+        --下载完成后调用
+        function download_stop(c)--总长度
+          isDownloading=false
+          nowDownloading=nil
+          cancel_down.setVisibility(8)
+          start_down.Text="安装"
+          TipDown.Text="下载完成："..string.format("%0.2f",c/1024/1024).."MB"
+          if isDialogCanceled==true then
+            Snackbar.make(vpg,app.name.."下载完成",Snackbar.LENGTH_SHORT)
+            .setAnchorView(bottombar)
+            .setAction("安装", View.OnClickListener{
+              onClick=function(v)
+                if sp.getString("suInstall",nil)=="开启" then
+                  io.popen("su -c 'cp -rf "..path.." /data/local/tmp/"..app.name..".apk".."'")
+                  io.popen("su -c 'pm install ".."/data/local/tmp/"..app.name..".apk".."'")
+                 else
+                  activity.installApk(path)
+                end
+              end
+            }).show();
+          end
+          isDialogCanceled=nil
+        end
+      end
+    end
+  end,
+}))
+recycler_view.setAdapter(adapterm)
+recycler_view.setLayoutManager(LinearLayoutManager(this))
+local OverScrollDecoratorHelper=luajava.bindClass("me.everything.android.ui.overscroll.OverScrollDecoratorHelper")
+OverScrollDecoratorHelper.setUpOverScroll(recycler_view, OverScrollDecoratorHelper.ORIENTATION_VERTICAL)
 
 local Volley,VolleyStringRequest,VolleyRequest,VolleyResponse=luajava.bindClass("com.android.volley.toolbox.Volley"),luajava.bindClass("com.android.volley.toolbox.StringRequest"),luajava.bindClass("com.android.volley.Request"),luajava.bindClass("com.android.volley.Response")
 
 queue = Volley.newRequestQueue(this);
-
 url = url_json;
-
 stringRequest = VolleyStringRequest(VolleyRequest.Method.GET, url,
-
 VolleyResponse.Listener{
-
   onResponse=function(response) {
-
     superTable=cjson.decode(response)
     mainProgress.setVisibility(8)
     optionText.setVisibility(8)
-
-    adapterm=LuaCustRecyclerAdapter(AdapterCreator({
-      getItemCount=function()
-        return #superTable
-      end,
-      getItemViewType=function(position)
-        return superTable[position+1].type
-      end,
-      onCreateViewHolder=function(parent,viewType)
-        local views={}
-        holder=LuaCustRecyclerHolder(loadlayout(Mitem,views))
-        holder.view.setTag(views)
-        return holder
-      end,
-      onBindViewHolder=function(holder,position)
-        view=holder.view.getTag()
-        local app=superTable[position+1]
-        view.title.Text=app.name
-        view.profile.Text=app.desc
-        view.pack.Text=app.packge
-        options = RequestOptions()
-        .placeholder(getFileDrawable("preload"))
-        .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC);
-        Glide.with(activity).asDrawable().load(app.logo).apply(options).into(view.icon)
-        view.contents.backgroundResource=rippleRes.resourceId
-        view.contents.onClick=function()
-
-          function SnackDownload()
-            Snackbar.make(vpg,app.name,Snackbar.LENGTH_SHORT)
-            .setAnchorView(bottombar)
-            .setAction("下载", View.OnClickListener{
-              onClick=function(v)
-
-                if isDownloading~=true then
-                  isDialogCanceled=nil
-                end
-
-                downloadLayout=
-                {
-                  LinearLayoutCompat,
-                  orientation='vertical',
-                  layout_width='fill',
-                  layout_height='wrap',
-                  padding="10dp",
-                  {
-                    LinearLayoutCompat,
-                    orientation='horizontal',
-                    gravity='center|left';
-                    layout_width='fill',
-                    layout_height='fill',
-                    {
-                      LinearLayoutCompat,
-                      orientation='vertical',
-                      layout_width='fill',
-                      layout_weight='1';
-                      layout_marginLeft='10dp';
-                      gravity='center|left';
-                      {
-                        MaterialTextView;
-                        Typeface=Typeface.defaultFromStyle(Typeface.BOLD);
-                        textSize='12dp';
-                        id="TipDown";
-                      };
-                    };
-                  };
-                  {
-                    ProgressBar;
-                    layout_width='fill';
-                    layout_marginLeft='16dp';
-                    layout_marginRight='16dp';
-                    id="progress_down",
-                    style='?android:attr/progressBarStyleHorizontal';
-                  };
-                  {
-                    LinearLayoutCompat,
-                    orientation='horizontal',
-                    layout_width='fill',
-                    layout_height='wrap',
-                    gravity="center",
-                    padding="10dp",
-                    {
-                      MaterialButtonToggleGroup,
-                      id="btnGroup",
-                      layout_width="wrap",
-                      layout_height="wrap",
-                      layout_gravity="center",
-                      singleSelection=true,
-                      SelectionRequired=true,
-                      {
-                        MaterialButton;
-                        gravity='center';
-                        text='隐藏';
-                        textSize='12dp';
-                        id="cancel_down",
-                      };
-                      {
-                        MaterialButton;
-                        gravity='center';
-                        text='复制链接';
-                        textSize='12dp';
-                        id="copy_down",
-                      };
-                      {
-                        MaterialButton;
-                        gravity='center';
-                        text='下载';
-                        textSize='12dp';
-                        id="start_down",
-                      };
-                    },
-                  },
-                };
-
-
-                dialog=MaterialAlertDialogBuilder(this)
-                .setTitle(app.name.."下载")
-                .setView(loadlayout(downloadLayout))
-                .show()
-
-
-                function trans(url,path)
-                  require "import"
-                  import "java.net.URL"
-                  local ur =URL(url)
-                  import "java.io.File"
-                  file =File(path);
-                  con = ur.openConnection();
-                  co = con.getContentLength();
-                  is = con.getInputStream();
-                  bs = byte[1024]
-                  local len,read=0,0
-                  import "java.io.FileOutputStream"
-                  wj= FileOutputStream(path);
-                  len = is.read(bs)
-                  while len~=-1 do
-                    wj.write(bs, 0, len);
-                    read=read+len
-                    pcall(call,"download_ing",read,co)
-                    len = is.read(bs)
-                  end
-                  wj.close();
-                  is.close();
-                  pcall(call,"download_stop",co)
-                  import "android.content.Context"
-                  sp = activity.getSharedPreferences("settings",Context.MODE_PRIVATE)
-                  if sp.getString("autoInstall",nil)=="开启" then
-                    activity.installApk(path)
-                   else
-                  end
-                end
-                function download(url,path)
-                  thread(trans,url,path)
-                end
-
-                cancel_down.onClick=function()
-                  if isDownloading==true then
-                    isDialogCanceled=true
-                  end
-                  dialog.cancel()
-                end
-
-                copy_down.onClick=function()
-                  activity.getSystemService(Context.CLIPBOARD_SERVICE).setText(app.link)
-                end
-
-                start_down.onClick=function()
-                  if start_down.Text=="下载" then
-                    start_down.Text="..."
-                    TipDown.Text="正在检查网络连接..."
-                    Http.get(app.link,nil,'utf8',nil,function(stateCode,json_table)
-                      if stateCode ~=200 then
-                        start_down.Text="下载"
-                        TipDown.Text="连接失败，请检查你的网络设置"
-                       else
-                        TipDown.Text="下载进程正在启动中..."
-                        sp = activity.getSharedPreferences("settings",Context.MODE_PRIVATE)
-                        filePath=sp.getString("FileAddress",nil)..app.name..".apk"
-                        import "java.io.File"
-                        File(sp.getString("FileAddress",nil)).mkdirs()
-                        download(app.link,filePath)
-                        progress_down.setVisibility(0)
-                      end
-                    end)
-                   elseif start_down.Text=="安装" then
-                    activity.installApk(filePath)
-                   else
-                  end
-                end
-
-                function download_ing(a,b)--已下载，总长度(byte)
-                  isDownloading=true
-                  nowDownloading=app.name
-                  TipDown.Text="正在下载："..string.format("%0.2f",a/1024/1024).."MB/"..string.format("%0.2f",b/1024/1024).."MB"
-                  progress_down.progress=(a/b*100)
-                  start_down.Text=string.format('%.2f',(a/b*100)).."%"
-                end
-
-                --下载完成后调用
-                function download_stop(c)--总长度
-                  isDownloading=false
-                  nowDownloading=nil
-                  cancel_down.setVisibility(8)
-                  start_down.Text="安装"
-                  TipDown.Text="下载完成："..string.format("%0.2f",c/1024/1024).."MB"
-                  if isDialogCanceled==true then
-                    Snackbar.make(vpg,app.name.."下载完成",Snackbar.LENGTH_SHORT)
-                    .setAnchorView(bottombar)
-                    .setAction("安装", View.OnClickListener{
-                      onClick=function(v)
-                        activity.installApk(filePath)
-                      end
-                    }).show();
-                  end
-                  isDialogCanceled=nil
-                end
-
-              end
-            })
-            .show();
-          end
-          if app.link=="" or app.link==nil then
-            print(app.name.."暂无下载链接")
-           else
-            if isDownloading==true then
-              if nowDownloading~=app.name then
-                print(nowDownloading.."下载任务正在进行")
-                return true
-               else
-                SnackDownload()
-              end
-             else
-              SnackDownload()
-            end
-          end
-        end
-      end,
-    }))
-
-    recycler_view.setAdapter(adapterm)
-    recycler_view.setLayoutManager(LinearLayoutManager(this))
-    local OverScrollDecoratorHelper=luajava.bindClass("me.everything.android.ui.overscroll.OverScrollDecoratorHelper")
-    OverScrollDecoratorHelper.setUpOverScroll(recycler_view, OverScrollDecoratorHelper.ORIENTATION_VERTICAL)
-
   }
 },
 
 VolleyResponse.ErrorListener{
-
   onErrorResponse=function(error) {
-
     optionText.Text="连接失败，请检查你的网络设置或JSON源"
   }
-
 });
-
 queue.add(stringRequest);
-
 
 
 

@@ -22,7 +22,7 @@ end
 
 dataRead("settings")
 --初始化设置数据
-setList={"MYswitch","autoInstall"}
+setList={"MYswitch","autoInstall","suInstall"}
 for index,content in pairs(setList) do
   local c=sp.getString(content,nil)
   if c==nil then

@@ -114,7 +114,7 @@
         },
         {
           MaterialTextView,
-          text="使用SU权限静默安装应用",
+          text="以SU权限静默安装应用",
           textSize="14sp",
         },
       },

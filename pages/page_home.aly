@@ -8,6 +8,9 @@
     id="mtab",
     layout_width="fill",
     layout_height="wrap",
+    TabRippleColor=ColorStateList.valueOf(tertiaryc),
+    TabTextColors=ColorStateList({{android.R.attr.state_selected, android.R.attr.state_enabled},{}},{tertiaryc,onsurfaceVar}),
+    SelectedTabIndicatorColor=tertiaryc,
   },
   {
     ViewPager,
@@ -15,7 +18,7 @@
     layout_width="fill",
     layout_height="fill",
     pagesWithTitle={
-      {--view
+      {
         {
           LinearLayoutCompat,
           orientation="vertical",

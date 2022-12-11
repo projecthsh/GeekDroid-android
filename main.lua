@@ -174,6 +174,9 @@ bottombar.setSelectedItemId(2)
 --一行解决控件联动。使用LuaPagerAdapter新增的构造方法，支持在布局表中设置标题!
 mtab.setupWithViewPager(cvpg)
 
+--给主页面ProgressBar勉强设置一个动画
+YoYo.with(Techniques.FadeIn).duration(500).playOn(mainProgress)
+YoYo.with(Techniques.FadeIn).duration(500).playOn(optionText)
 
 SelectDownload.onClick=function()
   local onSelectLayout=
@@ -232,14 +235,6 @@ SelectDownload.onClick=function()
   }
 end
 
-
---[[尝试增大TextInputLayout圆角，虽然不增大也挺好看的
-local corii={dp2px(16),dp2px(16),dp2px(16),dp2px(16)}
-t1.setBoxCornerRadii(table.unpack(corii))
-t2.setBoxCornerRadii(table.unpack(corii))
-t3.setBoxCornerRadii(table.unpack(corii))
-]]
-
 Materialswitch.setOnCheckedChangeListener{
   onCheckedChanged=function()
     dataNegate("settings","MYswitch")
@@ -283,6 +278,9 @@ licenseShow.onClick=function(v)
   .setView(loadlayout(MarkDownLayout))
   .setPositiveButton("确定",nil)
   .show()
+  --设置WebView显示动画
+  YoYo.with(Techniques.FadeIn).duration(1000).playOn(WebView)
+  --rawio获取md内容
   rawio=require "rawio"
   local Markdown4jProcessor=luajava.bindClass("org.markdown4j.Markdown4jProcessor")
   local content = rawio.iotsread(activity.getLuaDir().."/license.md","r")
@@ -381,211 +379,251 @@ adapterm=LuaCustRecyclerAdapter(AdapterCreator({
     return holder
   end,
   onBindViewHolder=function(holder,position)
-  view=holder.view.getTag()
-  local app=superTable[position+1]
-  view.title.Text=app.name
-  view.profile.Text=app.desc
-  view.pack.Text=app.packge
-  options = RequestOptions()
-  .placeholder(getFileDrawable("preload"))
-  .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC);
-  Glide.with(activity).asDrawable().load(app.logo).apply(options).into(view.icon)
-  view.contents.backgroundResource=rippleRes.resourceId
-  view.contents.onClick=function(v)
-
-  local popMenu={
-    ["下载"]=function()
-      if app.link=="" or app.link==nil then
-        print(app.name.."暂无下载链接")
-       else
-        if isDownloading==true then
-          if nowDownloading~=app.name then
-            print(nowDownloading.."下载任务正在进行")
-            return true
+    view=holder.view.getTag()
+    local app=superTable[position+1]
+    view.title.Text=app.name
+    view.profile.Text=app.desc
+    view.pack.Text=app.packge
+    options = RequestOptions()
+    .placeholder(getFileDrawable("preload"))
+    .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC);
+    Glide.with(activity).asDrawable().load(app.logo).apply(options).into(view.icon)
+    view.contents.backgroundResource=rippleRes.resourceId
+    view.contents.onClick=function(v)
+      --点击显示PopupWindow
+      local popMenu={
+        ["下载"]=function()
+          if app.link=="" or app.link==nil then
+            print(app.name.."暂无下载链接")
            else
-            CustomDownloader()
+            if isDownloading==true then
+              if nowDownloading~=app.name then
+                print(nowDownloading.."下载任务正在进行")
+                return true
+               else
+                CustomDownloader()
+              end
+             else
+              CustomDownloader()
+            end
           end
-         else
-          CustomDownloader()
+        end,
+        ["详情"]={
+          ["暂无"]=function()
+          end,
+        },
+      }
+      showPopMenu(popMenu,v,app.name)
+      --下载器
+      function CustomDownloader(v)
+        --存储权限检查
+        local flag = checkPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        if flag~= true then
+          requestPermissions(requirePermissions)
+          print("请授予存储权限后尝试下载")
+          return true
         end
-      end
-    end,
-    ["详情"]={
-      ["暂无"]=function()
-      end,
-    },
-  }
-  showPopMenu(popMenu,v,app.name)
 
-  function CustomDownloader(v)
-    local flag = checkPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-    if flag~= true then
-      requestPermissions(requirePermissions)
-      print("请授予存储权限后尝试下载")
-      return true
-    end
+        isDialogCanceled=nil
 
-    isDialogCanceled=nil
-
-    downloadLayout=
-    {
-      LinearLayoutCompat,
-      orientation='vertical',
-      layout_width='fill',
-      layout_height='wrap',
-      padding="10dp",
-      {
-        LinearLayoutCompat,
-        orientation='horizontal',
-        gravity='center|left';
-        layout_width='fill',
-        layout_height='fill',
+        downloadLayout=
         {
           LinearLayoutCompat,
           orientation='vertical',
           layout_width='fill',
-          layout_weight='1';
-          layout_marginLeft='10dp';
-          gravity='center|left';
+          layout_height='wrap',
+          padding="10dp",
           {
-            MaterialTextView;
-            Typeface=Typeface.defaultFromStyle(Typeface.BOLD);
-            textSize='12dp';
-            id="TipDown";
-          };
-        };
-      };
-      {
-        ProgressBar;
-        layout_width='fill';
-        layout_marginLeft='16dp';
-        layout_marginRight='16dp';
-        id="progress_down",
-        style='?android:attr/progressBarStyleHorizontal';
-      };
-      {
-        LinearLayoutCompat,
-        orientation='horizontal',
-        layout_width='fill',
-        layout_height='wrap',
-        gravity="center",
-        padding="10dp",
-        {
-          MaterialButtonToggleGroup,
-          id="btnGroup",
-          layout_width="wrap",
-          layout_height="wrap",
-          layout_gravity="center",
-          singleSelection=true,
-          SelectionRequired=true,
-          {
-            MaterialButton;
-            gravity='center';
-            text='隐藏';
-            textSize='12dp';
-            id="cancel_down",
+            LinearLayoutCompat,
+            orientation='horizontal',
+            gravity='center|left';
+            layout_width='fill',
+            layout_height='fill',
+            {
+              LinearLayoutCompat,
+              orientation='vertical',
+              layout_width='fill',
+              layout_weight='1';
+              layout_marginLeft='10dp';
+              gravity='center|left';
+              {
+                MaterialTextView;
+                Typeface=Typeface.defaultFromStyle(Typeface.BOLD);
+                textSize='12dp';
+                id="TipDown";
+              };
+            };
           };
           {
-            MaterialButton;
-            gravity='center';
-            text='复制链接';
-            textSize='12dp';
-            id="copy_down",
+            ProgressBar;
+            layout_width='fill';
+            layout_marginLeft='16dp';
+            layout_marginRight='16dp';
+            id="progress_down",
+            style='?android:attr/progressBarStyleHorizontal';
           };
           {
-            MaterialButton;
-            gravity='center';
-            text='下载';
-            textSize='12dp';
-            id="start_down",
-          };
-        },
-      },
-    };
-
-
-    dialog=MaterialAlertDialogBuilder(this)
-    .setTitle(app.name.."下载")
-    .setView(loadlayout(downloadLayout))
-    .show()
-
-
-    function trans(url,path,appname)
-      require "import"
-      import "java.net.URL"
-      local ur =URL(url)
-      import "java.io.File"
-      file =File(path);
-      con = ur.openConnection();
-      co = con.getContentLength();
-      is = con.getInputStream();
-      bs = byte[1024]
-      local len,read=0,0
-      import "java.io.FileOutputStream"
-      wj= FileOutputStream(path);
-      len = is.read(bs)
-      while len~=-1 do
-        wj.write(bs, 0, len);
-        read=read+len
-        pcall(call,"download_ing",read,co)
-        len = is.read(bs)
-      end
-      wj.close();
-      is.close();
-      pcall(call,"download_stop",co)
-      import "android.content.Context"
-      sp = activity.getSharedPreferences("settings",Context.MODE_PRIVATE)
-      if sp.getString("autoInstall",nil)=="开启" then
-        if sp.getString("suInstall",nil)=="开启" then
-          io.popen("su -c 'cp -rf "..path.." /data/local/tmp/"..appname..".apk".."'")
-          io.popen("su -c 'pm install ".."/data/local/tmp/"..appname..".apk".."'")
-         else
-          activity.installApk(path)
-        end
-       else
-      end
-    end
-    function download(url,path,appname)
-      thread(trans,url,path,appname)
-    end
-
-    cancel_down.onClick=function()
-      if isDownloading==true then
-        isDialogCanceled=true
-      end
-      dialog.cancel()
-    end
-
-    copy_down.onClick=function()
-      activity.getSystemService(Context.CLIPBOARD_SERVICE).setText(app.link)
-    end
-
-    start_down.onClick=function()
-      if start_down.Text=="下载" then
-        start_down.Text="..."
-        TipDown.Text="正在检查网络连接..."
-        local Volley,VolleyStringRequest,VolleyRequest,VolleyResponse=luajava.bindClass("com.android.volley.toolbox.Volley"),luajava.bindClass("com.android.volley.toolbox.StringRequest"),luajava.bindClass("com.android.volley.Request"),luajava.bindClass("com.android.volley.Response")
-        local newRequest = VolleyStringRequest(VolleyRequest.Method.GET, url_json,
-        VolleyResponse.Listener{
-          onResponse=function(response) {
-              TipDown.Text="下载进程正在启动中..."
-              sp = activity.getSharedPreferences("settings",Context.MODE_PRIVATE)
-              filePath=sp.getString("FileAddress",nil)..app.name..".apk"
-              import "java.io.File"
-              File(sp.getString("FileAddress",nil)).mkdirs()
-              download(app.link,filePath,app.name)
-              progress_down.setVisibility(0)
-            }
+            LinearLayoutCompat,
+            orientation='horizontal',
+            layout_width='fill',
+            layout_height='wrap',
+            gravity="center",
+            padding="10dp",
+            {
+              MaterialButtonToggleGroup,
+              id="btnGroup",
+              layout_width="wrap",
+              layout_height="wrap",
+              layout_gravity="center",
+              singleSelection=true,
+              SelectionRequired=true,
+              {
+                MaterialButton;
+                gravity='center';
+                text='隐藏';
+                textSize='12dp';
+                id="cancel_down",
+              };
+              {
+                MaterialButton;
+                gravity='center';
+                text='复制链接';
+                textSize='12dp';
+                id="copy_down",
+              };
+              {
+                MaterialButton;
+                gravity='center';
+                text='下载';
+                textSize='12dp';
+                id="start_down",
+              };
+            },
           },
-          VolleyResponse.ErrorListener{
-            onErrorResponse=function(error) {
-                start_down.Text="下载"
-                TipDown.Text="连接失败，请检查你的网络设置"
-              }
-            });
-            queue.add(newRequest);
+        };
+
+
+        dialog=MaterialAlertDialogBuilder(this)
+        .setTitle(app.name.."下载")
+        .setView(loadlayout(downloadLayout))
+        .show()
+        --用于下载进程内的Toast
+        function makeFinshToast()
+          Toast.makeText(activity, "静默安装时请勿退出GeekDroid",Toast.LENGTH_SHORT).show()
+        end
+
+        function trans(url,path,appname)
+          require "import"
+          import "java.net.URL"
+          local ur =URL(url)
+          import "java.io.File"
+          file =File(path);
+          con = ur.openConnection();
+          co = con.getContentLength();
+          is = con.getInputStream();
+          bs = byte[1024]
+          local len,read=0,0
+          import "java.io.FileOutputStream"
+          wj= FileOutputStream(path);
+          len = is.read(bs)
+          while len~=-1 do
+            wj.write(bs, 0, len);
+            read=read+len
+            pcall(call,"download_ing",read,co)
+            len = is.read(bs)
+          end
+          wj.close();
+          is.close();
+          pcall(call,"download_stop",co)
+          import "android.content.Context"
+          --获取下载设置
+          sp = activity.getSharedPreferences("settings",Context.MODE_PRIVATE)
+          if sp.getString("autoInstall",nil)=="开启" then
+            if sp.getString("suInstall",nil)=="开启" then
+              call("makeFinshToast")
+              io.popen("su -c 'cp -rf "..path.." /data/local/tmp/"..appname..".apk".."'")
+              io.popen("su -c 'pm install ".."/data/local/tmp/"..appname..".apk".."'")
+             else
+              activity.installApk(path)
+            end
+           else
+          end
+        end
+        function download(url,path,appname)
+          thread(trans,url,path,appname)
+        end
+
+        cancel_down.onClick=function()
+          --如果正在下载则设置对话框隐藏状态
+          if isDownloading==true then
+            isDialogCanceled=true
+          end
+          dialog.cancel()
+        end
+
+        copy_down.onClick=function()
+          activity.getSystemService(Context.CLIPBOARD_SERVICE).setText(app.link)
+        end
+
+        start_down.onClick=function()
+
+          function mResponse()
+            Thread(Runnable{
+              run = function()
+                this.runOnUiThread(Runnable{
+                  run = function()
+                    TipDown.Text="下载进程正在启动中..."
+                    sp = activity.getSharedPreferences("settings",Context.MODE_PRIVATE)
+                    filePath=sp.getString("FileAddress",nil)..app.name..".apk"
+                    import "java.io.File"
+                    File(sp.getString("FileAddress",nil)).mkdirs()
+                    download(app.link,filePath,app.name)
+                    progress_down.setVisibility(0)
+                end})
+            end}).start()
+          end
+
+          function mError()
+            Thread(Runnable{
+              run = function()
+                this.runOnUiThread(Runnable{
+                  run = function()
+                    start_down.Text="下载"
+                    TipDown.Text="连接失败，请检查你的网络设置"
+                end})
+            end}).start()
+          end
+
+          if start_down.Text=="下载" then
+            start_down.Text="..."
+            TipDown.Text="正在检查网络连接..."
+
+            --导入okhttp
+            local OkHttpClient,OkHttpRequest,OkHttpCallback=luajava.bindClass"okhttp3.OkHttpClient",luajava.bindClass"okhttp3.Request",luajava.bindClass"okhttp3.Callback"
+            --请求辅助类
+            local request = OkHttpRequest.Builder()
+            .url(url_json)
+            .build();
+            --异步请求
+            local client = OkHttpClient()
+            local callz = client.newCall(request)
+            callz.enqueue(OkHttpCallback{
+              onFailure=function(call,e)
+                mError()
+              end,
+              onResponse=function(call,response)
+                mResponse()
+            end})
+
            elseif start_down.Text=="安装" then
-            activity.installApk(filePath)
+            --按设置方式安装
+            if sp.getString("suInstall",nil)=="开启" then
+              Toast.makeText(activity, "静默安装时请勿退出GeekDroid",Toast.LENGTH_SHORT).show()
+              io.popen("su -c 'cp -rf "..filePath.." /data/local/tmp/"..app.name..".apk".."'")
+              io.popen("su -c 'pm install ".."/data/local/tmp/"..app.name..".apk".."'")
+             else
+              activity.installApk(filePath)
+            end
            else
           end
         end
@@ -609,17 +647,17 @@ adapterm=LuaCustRecyclerAdapter(AdapterCreator({
             Snackbar.make(vpg,app.name.."下载完成",Snackbar.LENGTH_SHORT)
             .setAnchorView(bottombar)
             .setAction("安装", View.OnClickListener{
-              onClick=function(v)
+              onClick=function()
                 if sp.getString("suInstall",nil)=="开启" then
-                  io.popen("su -c 'cp -rf "..path.." /data/local/tmp/"..app.name..".apk".."'")
+                  Toast.makeText(activity, "静默安装时请勿退出GeekDroid",Toast.LENGTH_SHORT).show()
+                  io.popen("su -c 'cp -rf "..filePath.." /data/local/tmp/"..app.name..".apk".."'")
                   io.popen("su -c 'pm install ".."/data/local/tmp/"..app.name..".apk".."'")
                  else
-                  activity.installApk(path)
+                  activity.installApk(filePath)
                 end
               end
             }).show();
           end
-          isDialogCanceled=nil
         end
       end
     end
@@ -630,27 +668,46 @@ recycler_view.setLayoutManager(LinearLayoutManager(this))
 local OverScrollDecoratorHelper=luajava.bindClass("me.everything.android.ui.overscroll.OverScrollDecoratorHelper")
 OverScrollDecoratorHelper.setUpOverScroll(recycler_view, OverScrollDecoratorHelper.ORIENTATION_VERTICAL)
 
-local Volley,VolleyStringRequest,VolleyRequest,VolleyResponse=luajava.bindClass("com.android.volley.toolbox.Volley"),luajava.bindClass("com.android.volley.toolbox.StringRequest"),luajava.bindClass("com.android.volley.Request"),luajava.bindClass("com.android.volley.Response")
+--导入okhttp
+local OkHttpClient,OkHttpRequest,OkHttpCallback=luajava.bindClass"okhttp3.OkHttpClient",luajava.bindClass"okhttp3.Request",luajava.bindClass"okhttp3.Callback"
+--请求辅助类
+mRequest = OkHttpRequest.Builder()
+.url(url_json)
+.build();
+--异步请求
+mClient = OkHttpClient()
+mCall = mClient.newCall(mRequest)
+mCall.enqueue(OkHttpCallback{
+  onFailure=function(call,e)
+    mSetText(optionText,"连接失败，请检查你的网络设置或JSON源")
+  end,
+  onResponse=function(call,response)
+    mLoadTable(response.body().string())
+end})
 
-queue = Volley.newRequestQueue(this);
-url = url_json;
-stringRequest = VolleyStringRequest(VolleyRequest.Method.GET, url,
-VolleyResponse.Listener{
-  onResponse=function(response) {
-    superTable=cjson.decode(response)
-    mainProgress.setVisibility(8)
-    optionText.setVisibility(8)
-  }
-},
+function mSetText(id,m)
+  Thread(Runnable{
+    run = function()
+      this.runOnUiThread(Runnable{
+        run = function()
+          YoYo.with(Techniques.Bounce).duration(1000).playOn(mainProgress)
+          YoYo.with(Techniques.Bounce).duration(1000).playOn(id)
+          id.setText(m)
+      end})
+  end}).start()
+end
 
-VolleyResponse.ErrorListener{
-  onErrorResponse=function(error) {
-    optionText.Text="连接失败，请检查你的网络设置或JSON源"
-  }
-});
-queue.add(stringRequest);
-
-
+function mLoadTable(json)
+  Thread(Runnable{
+    run = function()
+      this.runOnUiThread(Runnable{
+        run = function()
+          superTable=cjson.decode(json)
+          mainProgress.setVisibility(8)
+          optionText.setVisibility(8)
+      end})
+  end}).start()
+end
 
 
 --本地RecyclerView部分

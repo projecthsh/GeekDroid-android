@@ -51,7 +51,7 @@ function showPopMenu(tab,views,title)
       MaterialTextView;
       id="popadp_text";
       Typeface=Typeface.DEFAULT_BOLD,
-      textColor=primaryc;
+      textColor=tertiaryc;
       layout_width="-1";
       layout_height="-1";
       textSize="14sp";

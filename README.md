@@ -1,4 +1,8 @@
 # GeekDroid-android
+使用 Androlua 框架开发的应用商店模板
+<p align="center">
+<img src="https://img.shields.io/badge/language-lua-blue.svg"/>
+<img src="https://img.shields.io/badge/license-Apache-blue"/>
 
 ## 鸣谢
 - [reOpenLua+](https://github.com/daisukiKaffuChino/reOpenLua-Open-Source)：诸多修改版AndroLua+中的一种

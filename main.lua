@@ -7,6 +7,7 @@ import {
   "android.content.Intent",
   "android.content.res.ColorStateList",
   "android.graphics.BitmapFactory",
+  "android.graphics.PorterDuff",
   "android.graphics.drawable.GradientDrawable$Orientation",
   "android.graphics.drawable.Drawable",
   "android.graphics.drawable.BitmapDrawable",
@@ -15,6 +16,7 @@ import {
   "android.util.TypedValue",
   "android.net.Uri",
   "java.io.FileInputStream",
+  "java.util.concurrent.TimeUnit",
 
   "androidx.appcompat.widget.LinearLayoutCompat",
   "androidx.appcompat.widget.AppCompatImageView",
@@ -24,7 +26,6 @@ import {
   "androidx.viewpager.widget.ViewPager$DecorView",
   "androidx.recyclerview.widget.RecyclerView",
   "androidx.recyclerview.widget.LinearLayoutManager",
-  "androidx.swiperefreshlayout.widget.SwipeRefreshLayout",
 
   "com.google.android.material.appbar.AppBarLayout",
   "com.google.android.material.appbar.MaterialToolbar",
@@ -151,9 +152,9 @@ vpg.setOnPageChangeListener(ViewPager.OnPageChangeListener{
     if v~=1 then
       YoYo.with(Techniques.ZoomOut).duration(200).playOn(fab)
       task(200,function()fab.setVisibility(8)end)
-      if v==0 and isLoaded~=true then
+      if v==0 and _isLoaded~=true then
         --显示本地列表
-        isLoaded=true
+        _isLoaded=true
         loadLocalList()
         collectgarbage("collect")
       end
@@ -235,6 +236,9 @@ SelectDownload.onClick=function()
   }
 end
 
+function onClickFab()
+end
+
 Materialswitch.setOnCheckedChangeListener{
   onCheckedChanged=function()
     dataNegate("settings","MYswitch")
@@ -250,7 +254,12 @@ autoSwitch.setOnCheckedChangeListener{
 
 suSwitch.setOnCheckedChangeListener{
   onCheckedChanged=function()
-    dataNegate("settings","suInstall")
+    local RootUtil=luajava.bindClass"com.androlua.util.RootUtil"
+    if RootUtil.haveRoot() then
+      dataNegate("settings","suInstall")
+     else
+      suSwitch.setChecked(false)
+    end
   end
 }
 
@@ -320,45 +329,55 @@ end
 
 cjson=require "cjson"
 --主RecyclerAdapter部分
-local Mitem={
-  LinearLayoutCompat;
-  orientation='vertical';
-  layout_width='fill';
-  layout_height='wrap';
-  id="contents",
-  padding='10dp';
-  {LinearLayoutCompat,
-    Orientation=0,
-    layout_width="fill",
-    layout_height="wrap",
-    {AppCompatImageView,
-      layout_marginTop="16dp",
-      layout_marginBottom="16dp",
-      layout_marginLeft="8dp",
-      layout_width="42dp",
-      layout_height="42dp",
-      id="icon",
-    },
+local Mitem=
+{LinearLayoutCompat,
+  Orientation=0,
+  layout_width="fill",
+  layout_height="wrap",
+  paddingTop='16dp';
+  paddingLeft='16dp';
+  paddingRight='16dp';
+  {
+    MaterialCardView,
+    radius="16dp",
+    layout_width='fill';
+    layout_height='wrap';
+    strokeWidth="0dp",
+    layout_margin="6dp",
     {LinearLayoutCompat,
+      Orientation=0,
       layout_width="fill",
       layout_height="wrap",
-      layout_marginTop="4dp",
-      layout_marginBottom="4dp",
-      layout_marginLeft="12dp",
-      Orientation=1,
-      {MaterialTextView,
-        textSize="18sp",
-        id="title",
+      id="contents",
+      {AppCompatImageView,
+        layout_marginTop="16dp",
+        layout_marginBottom="16dp",
+        layout_marginLeft="8dp",
+        layout_width="42dp",
+        layout_height="42dp",
+        id="icon",
       },
-      {MaterialTextView,
-        ellipsize='end';
-        singleLine=true,
-        textSize="13sp",
-        id="profile",
-      },
-      {MaterialTextView,
-        textSize="13sp",
-        id="pack",
+      {LinearLayoutCompat,
+        layout_width="fill",
+        layout_height="wrap",
+        layout_marginTop="4dp",
+        layout_marginBottom="4dp",
+        layout_marginLeft="16dp",
+        Orientation=1,
+        {MaterialTextView,
+          textSize="18sp",
+          id="title",
+        },
+        {MaterialTextView,
+          ellipsize='end';
+          singleLine=true,
+          textSize="13sp",
+          id="profile",
+        },
+        {MaterialTextView,
+          textSize="13sp",
+          id="pack",
+        },
       },
     },
   },
@@ -384,7 +403,7 @@ adapterm=LuaCustRecyclerAdapter(AdapterCreator({
     view.title.Text=app.name
     view.profile.Text=app.desc
     view.pack.Text=app.packge
-    options = RequestOptions()
+    local options = RequestOptions()
     .placeholder(getFileDrawable("preload"))
     .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC);
     Glide.with(activity).asDrawable().load(app.logo).apply(options).into(view.icon)
@@ -644,8 +663,7 @@ adapterm=LuaCustRecyclerAdapter(AdapterCreator({
           start_down.Text="安装"
           TipDown.Text="下载完成："..string.format("%0.2f",c/1024/1024).."MB"
           if isDialogCanceled==true then
-            Snackbar.make(vpg,app.name.."下载完成",Snackbar.LENGTH_SHORT)
-            .setAnchorView(bottombar)
+            local _s=Snackbar.make(vpg,app.name.."下载完成",Snackbar.LENGTH_SHORT)
             .setAction("安装", View.OnClickListener{
               onClick=function()
                 if sp.getString("suInstall",nil)=="开启" then
@@ -657,6 +675,12 @@ adapterm=LuaCustRecyclerAdapter(AdapterCreator({
                 end
               end
             }).show();
+            if vpg.getCurrentItem() ==1 then
+              _s.setAnchorView(fab)
+             else
+              _s.setAnchorView(bottombar)
+            end
+
           end
         end
       end
@@ -675,6 +699,11 @@ mRequest = OkHttpRequest.Builder()
 .url(url_json)
 .build();
 --异步请求
+OkHttpClient.Builder()
+.retryOnConnectionFailure(true)
+.readTimeout(30,TimeUnit.SECONDS)
+.writeTimeout(30,TimeUnit.SECONDS)
+.connectTimeout(30,TimeUnit.SECONDS);
 mClient = OkHttpClient()
 mCall = mClient.newCall(mRequest)
 mCall.enqueue(OkHttpCallback{
@@ -764,7 +793,7 @@ function loadLocalList()
         local localapp=AppList[position+1]
         view.name.Text=localapp.app_name
         view.packname.Text=localapp.packageName
-        options = RequestOptions()
+        local options = RequestOptions()
         .placeholder(getFileDrawable("preload"))
         .skipMemoryCache(true)
         .diskCacheStrategy(DiskCacheStrategy.NONE);
@@ -828,21 +857,25 @@ function loadLocalList()
 end
 
 --退出应用
-exit=0
+_exit=0
 function onKeyDown(code,event)
   if string.find(tostring(event),"KEYCODE_BACK") ~= nil then
-    if exit+2 > tonumber(os.time()) then
+    if _exit+2 > tonumber(os.time()) then
       activity.finish()
      else
-      Snackbar.make(vpg,"再次返回以退出",Snackbar.LENGTH_SHORT)
-      .setAnchorView(bottombar)
+      local _snack=Snackbar.make(vpg,"再次返回以退出",Snackbar.LENGTH_SHORT)
       .setAction("退出", View.OnClickListener{
         onClick=function(v)
           activity.finish()
         end
       })
       .show();
-      exit=tonumber(os.time())
+      if vpg.getCurrentItem() == 1 then
+        _snack.setAnchorView(fab)
+       else
+        _snack.setAnchorView(bottombar)
+      end
+      _exit=tonumber(os.time())
     end
     return true
   end

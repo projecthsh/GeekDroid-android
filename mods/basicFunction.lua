@@ -9,7 +9,12 @@ function dp2px(dpValue)
 end
 
 function print(content)
-  Snackbar.make(vpg,content,Snackbar.LENGTH_SHORT).setAnchorView(bottombar).show();
+  local _v=Snackbar.make(vpg,content,Snackbar.LENGTH_SHORT).show();
+  if vpg.getCurrentItem() == 1 then
+    _v.setAnchorView(fab)
+   else
+    _v.setAnchorView(bottombar)
+  end
 end
 
 --初始化ripple

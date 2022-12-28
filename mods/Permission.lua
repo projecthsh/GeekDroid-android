@@ -39,12 +39,19 @@ onRequestPermissionsResult=function(requestCode, permissions, grantResults)
 end
 
 Manifest = luajava.bindClass "android.Manifest"
---以储存权限为例
-requirePermissions =
-{
-  Manifest.permission.READ_EXTERNAL_STORAGE,
-  Manifest.permission.WRITE_EXTERNAL_STORAGE
-}
+
+if Build.VERSION.SDK_INT >= 31 then
+  requirePermissions =
+  {
+    Manifest.permission.MANAGE_EXTERNAL_STORAGE
+  }
+ else
+  requirePermissions =
+  {
+    Manifest.permission.READ_EXTERNAL_STORAGE,
+    Manifest.permission.WRITE_EXTERNAL_STORAGE
+  }
+end
 --检查权限
 function checkPermission(permission)
   return 0==activity.checkSelfPermission(permission)

@@ -9,7 +9,7 @@ function showPopMenu(tab,views,title)
     {
       MaterialCardView;
       Elevation="0";
-      CardBackgroundColor=backgroundc;
+      CardBackgroundColor=onsurfaceInv;
       Radius="18dp";
       layout_width="192dp";
       layout_height="-2";

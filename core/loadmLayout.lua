@@ -66,7 +66,6 @@ layout={
     ExtendedFloatingActionButton,
     id="fab",
     text="刷新",
-    --onClick="onClickFab",
     icon=getFileDrawable("round_refresh_black_24dp"),
     layout_gravity="bottom|end",
     layout_marginBottom="110dp",
@@ -74,7 +73,8 @@ layout={
     backgroundColor=tertiaryc,
     textColor=ontertiaryc,
     IconTint=ColorStateList.valueOf(ontertiaryc),
-    RippleColor=ColorStateList.valueOf(ontertiaryc),
+    RippleColor=ColorStateList.valueOf(ontertiaryContain),
+    onClick="onClickFab",
   },
 }
 
@@ -113,3 +113,8 @@ end
 local addToolbarMenu=lambda a,b,c,name:toolbar.menu.add(a,b,c,name)
 addToolbarMenu(0,0,0,"换源")
 addToolbarMenu(0,1,1,"退出")
+
+
+mainProgress
+.getIndeterminateDrawable()
+.setColorFilter(tertiaryc, PorterDuff.Mode.SRC_IN)

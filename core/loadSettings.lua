@@ -26,7 +26,6 @@ if sp.getString("suInstall",nil)=="开启" then
   suSwitch.setChecked(true)
 end
 
-
 --设置初始启动弹窗
 if sp.getString("isFirstStart","")=="" then
   local packinfo = this.getPackageManager().getPackageInfo(this.getPackageName(), 64.0)
@@ -83,11 +82,18 @@ if sp.getString("isFirstStart","")=="" then
     --所有的权限常量定义在Manifest的内部类permission里，写法如下
     local Manifest = luajava.bindClass "android.Manifest"
     --以储存权限为例
-    local requirePermissions =
-    {
-      Manifest.permission.READ_EXTERNAL_STORAGE,
-      Manifest.permission.WRITE_EXTERNAL_STORAGE
-    }
+    if Build.VERSION.SDK_INT >= 31 then
+      requirePermissions =
+      {
+        Manifest.permission.MANAGE_EXTERNAL_STORAGE
+      }
+     else
+      requirePermissions =
+      {
+        Manifest.permission.READ_EXTERNAL_STORAGE,
+        Manifest.permission.WRITE_EXTERNAL_STORAGE
+      }
+    end
     requestPermissions(requirePermissions)
   end)
   .setNegativeButton("退出",function()

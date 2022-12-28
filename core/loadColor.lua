@@ -10,12 +10,13 @@ end
 local themeUtil=LuaThemeUtil(this)
 MDC_R=luajava.bindClass"com.google.android.material.R"
 surfaceColor=themeUtil.getColorSurface()
-backgroundc=themeUtil.getColorBackground()
 surfaceVar=themeUtil.getColorSurfaceVariant()
 onsurfaceVar=themeUtil.getColorOnSurfaceVariant()
+onsurfaceInv=themeUtil.getColorOnSurfaceInverse()
+backgroundc=themeUtil.getColorBackground()
+onbackgroundc=themeUtil.getColorOnBackground()
 titleColor=themeUtil.getTitleTextColor()
 textc=themeUtil.getTextColor()
-titletextc=themeUtil.getTitleTextColor()
 menuc=themeUtil.getActionMenuTextColor()
 primaryc=themeUtil.getColorPrimary()
 primarycVar=themeUtil.getColorPrimaryVariant()
@@ -24,6 +25,7 @@ onsecondaryc=themeUtil.getColorOnSecondary()
 tertiaryc=themeUtil.getColorTertiary()
 ontertiaryc=themeUtil.getColorOnTertiary()
 tertiaryContain=themeUtil.getColorTertiaryContainer()
+ontertiaryContain=themeUtil.getColorOnTertiaryContainer()
 
 function createColorStateList(normal,pressed,focused,unable)
   local colors = { pressed, focused, normal, focused, unable, normal };

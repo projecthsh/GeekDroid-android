@@ -41,10 +41,11 @@ layout={
       orientation="vertical",
       --[
       {
-        ViewPager,
+        CustomViewPager,
         id="vpg",
         layout_width="fill",
         layout_height="fill",
+        Swipeable=true,
         pages={
           "pages/page_file",
           "pages/page_find",

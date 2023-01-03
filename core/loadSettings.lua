@@ -1,21 +1,21 @@
 --设置初始JSON地址
 if sp.getString("JSON","")=="" then
-  dataInput("https://raw.githubusercontent.com/projecthsh/Project-HSH/master/index-1.json","settings","JSON")
-  url_json="https://raw.githubusercontent.com/projecthsh/Project-HSH/master/index-1.json"
+  dataInput("https://phsh.bangumi.cyou/index-1.json","settings","JSON")
+  url_json="https://phsh.bangumi.cyou/index-1.json"
  else
   url_json=sp.getString("JSON",nil)
 end
 
 --设置初始下载地址
 if sp.getString("FileAddress","")=="" then
-  dataInput("/sdcard/Download/","settings","FileAddress")
+  dataInput("/sdcard/Download/GeekDroid/","settings","FileAddress")
   SelectDownload.getChildAt(0).getChildAt(1).setText("当前下载路径"..sp.getString("FileAddress",""))
 end
 
 
 --设置部分
 if sp.getString("MYswitch",nil)=="开启" then
-  Materialswitch.setChecked(true)
+  monetSwitch.setChecked(true)
 end
 
 if sp.getString("autoInstall",nil)=="开启" then
@@ -61,7 +61,7 @@ if sp.getString("isFirstStart","")=="" then
       local ActivityCompat = luajava.bindClass "androidx.core.app.ActivityCompat"
       return ActivityCompat.requestPermissions(activity, permissions, 10);
     end
-    --申请权限的回调在这里执行
+    --申请权限的回调
     onRequestPermissionsResult=function(requestCode, permissions, grantResults)
       local PackageManager = luajava.bindClass "android.content.pm.PackageManager"
       --判断是不是自己的权限申请，这里的10就是上面requestPermissions中写的10
@@ -78,14 +78,16 @@ if sp.getString("isFirstStart","")=="" then
         --print("申请了"..#permissions.."个权限，通过了"..count.."个权限")
       end
     end
-    --要申请的权限列表
-    --所有的权限常量定义在Manifest的内部类permission里，写法如下
+    --申请的权限列表
+    --所有的权限常量定义在Manifest的内部类permission里
     local Manifest = luajava.bindClass "android.Manifest"
-    --以储存权限为例
+    --储存权限
     if Build.VERSION.SDK_INT >= 31 then
       requirePermissions =
       {
-        Manifest.permission.MANAGE_EXTERNAL_STORAGE
+        Manifest.permission.MANAGE_EXTERNAL_STORAGE,
+        Manifest.permission.WRITE_EXTERNAL_STORAGE,
+        Manifest.permission.READ_EXTERNAL_STORAGE
       }
      else
       requirePermissions =

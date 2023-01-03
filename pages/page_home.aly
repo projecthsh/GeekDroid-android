@@ -3,6 +3,7 @@
   orientation="vertical",
   layout_width="fill",
   layout_height="fill",
+  id="home_content",
   {
     TabLayout,
     id="mtab",
@@ -55,6 +56,7 @@
             layout_height="match_parent";
             id="recycler_view";
             HasFixedSize=true,
+            layout_marginBottom="140dp",
           },
         },
         {
@@ -86,6 +88,7 @@
             IconTint=ColorStateList.valueOf(ontertiaryc),
             RippleColor=ColorStateList.valueOf(tertiaryContain),
             icon=getFileDrawable("round_refresh_black_24dp"),
+            id="retryBtn",
           },
         },
       },

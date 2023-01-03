@@ -8,6 +8,8 @@
     orientation="vertical",
     layout_width="fill",
     layout_height="fill",
+    id="json_content",
+    layoutTransition=LayoutTransition().enableTransitionType(LayoutTransition.CHANGING),
     {
       MaterialTextView,
       layout_marginTop="32dp",
@@ -18,13 +20,13 @@
     },
     {
       TextInputLayout,
-      id="t1",
       hint="应用名称",
       layout_marginTop="16dp",
       boxBackgroundMode=TextInputLayout.BOX_BACKGROUND_OUTLINE,
       layout_width="fill",
       {
         TextInputEditText,
+        id="tName",
         padding="16dp";
         style=MDC_R.style.Widget_Material3_TextInputEditText_OutlinedBox_Dense,
         textSize=16,
@@ -33,7 +35,6 @@
     },
     {
       TextInputLayout,
-      id="t2",
       hint="包名",
       layout_marginTop="12dp",
       --passwordVisibilityToggleEnabled=true,
@@ -41,6 +42,7 @@
       layout_width="fill",
       {
         TextInputEditText,
+        id="tPackage",
         padding="16dp";
         style=MDC_R.style.Widget_Material3_TextInputEditText_OutlinedBox_Dense,
         textSize=16,
@@ -49,13 +51,13 @@
     },
     {
       TextInputLayout,
-      id="t3",
       hint="介绍",
       layout_marginTop="12dp",
       boxBackgroundMode=TextInputLayout.BOX_BACKGROUND_OUTLINE,
       layout_width="fill",
       {
         TextInputEditText,
+        id="tDesc",
         padding="16dp";
         style=MDC_R.style.Widget_Material3_TextInputEditText_OutlinedBox_Dense,
         textSize=16,
@@ -64,13 +66,28 @@
     },
     {
       TextInputLayout,
-      id="t4",
       hint="图标",
       layout_marginTop="12dp",
       boxBackgroundMode=TextInputLayout.BOX_BACKGROUND_OUTLINE,
       layout_width="fill",
       {
         TextInputEditText,
+        id="tLogo",
+        padding="16dp";
+        style=MDC_R.style.Widget_Material3_TextInputEditText_OutlinedBox_Dense,
+        textSize=16,
+        layout_width="fill",
+      },
+    },
+    {
+      TextInputLayout,
+      hint="链接",
+      layout_marginTop="12dp",
+      boxBackgroundMode=TextInputLayout.BOX_BACKGROUND_OUTLINE,
+      layout_width="fill",
+      {
+        TextInputEditText,
+        id="tLink",
         padding="16dp";
         style=MDC_R.style.Widget_Material3_TextInputEditText_OutlinedBox_Dense,
         textSize=16,
@@ -85,13 +102,13 @@
       layout_height="fill",
       {
         TextInputLayout,
-        id="t5",
         hint="版本",
         layout_gravity="center|start",
         boxBackgroundMode=TextInputLayout.BOX_BACKGROUND_OUTLINE,
         layout_width="40%w",
         {
           TextInputEditText,
+          id="tVer",
           style=MDC_R.style.Widget_Material3_TextInputEditText_OutlinedBox_Dense,
           textSize=16,
           layout_width="match_parent",
@@ -99,14 +116,14 @@
       },
       {
         TextInputLayout,
-        id="t6",
-        hint="架构",
+        hint="大小",
         paddingLeft="5%w",
         layout_gravity="center|start",
         boxBackgroundMode=TextInputLayout.BOX_BACKGROUND_OUTLINE,
         layout_width="40%w",
         {
           TextInputEditText,
+          id="tSize",
           style=MDC_R.style.Widget_Material3_TextInputEditText_OutlinedBox_Dense,
           textSize=16,
           layout_width="match_parent",
@@ -124,13 +141,15 @@
       {
         MaterialButton,
         text="清除",
+        layout_marginRight="4dp",
+        onClick="onClickClear",
         backgroundResource=rippleRes.resourceId,
         style=MDC_R.style.Widget_Material3_Button_TextButton,
       },
       {
         MaterialButton,
         text="生成JSON",
-        onClick=function()print("笑死，还没写")end,
+        onClick="onClickGenerate",
       },
     },
   },

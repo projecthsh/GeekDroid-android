@@ -7,6 +7,7 @@
     orientation="vertical",
     layout_width="fill",
     layout_height="fill",
+    id="setting_content",
     layoutTransition=LayoutTransition().enableTransitionType(LayoutTransition.CHANGING),
     {
       MaterialTextView,
@@ -47,7 +48,7 @@
       },
       {
         MaterialSwitch,
-        id="Materialswitch",
+        id="monetSwitch",
         paddingRight="16dp",
       },
     },
@@ -212,16 +213,12 @@
       layout_height="wrap",
       gravity="center|start",
       backgroundResource=rippleRes.resourceId,
-      onClick=function(v)
-        local url="https://github.com/projecthsh/GeekDroid-android"
-        viewIntent = Intent("android.intent.action.VIEW",Uri.parse(url))
-        activity.startActivity(viewIntent)
-      end,
+      id="contactLinear",
       {
         MaterialTextView,
         paddingTop="16dp",
         paddingBottom="16dp",
-        text="项目开源地址",
+        text="项目交流",
         textStyle="bold",
         textSize="18sp",
       },
@@ -239,6 +236,27 @@
         paddingTop="16dp",
         paddingBottom="16dp",
         text="开源许可",
+        textStyle="bold",
+        textSize="18sp",
+      },
+    },
+    {
+      LinearLayoutCompat,
+      paddingLeft="16dp",
+      layout_width="fill",
+      layout_height="wrap",
+      gravity="center|start",
+      backgroundResource=rippleRes.resourceId,
+      onClick=function(v)
+        local url="https://github.com/projecthsh/GeekDroid-android"
+        viewIntent = Intent("android.intent.action.VIEW",Uri.parse(url))
+        activity.startActivity(viewIntent)
+      end,
+      {
+        MaterialTextView,
+        paddingTop="16dp",
+        paddingBottom="16dp",
+        text="项目开源地址",
         textStyle="bold",
         textSize="18sp",
       },

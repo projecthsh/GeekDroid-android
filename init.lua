@@ -1,8 +1,8 @@
 appname="GeekDroid"
-appver="0.2.8"
-appcode="39"
+appver="0.3.2"
+appcode="43"
 packagename="github.znzsofficial.geekdroid"
-theme="Theme_Material_Light_NoActionBar"
+reOpenLuaTheme="Theme.Material3"
 welcome_time="0"
 debugmode=true
 enableExtendedOutputSupport=false

@@ -22,8 +22,6 @@ import {
   "androidx.appcompat.widget.AppCompatImageView",
   "androidx.core.widget.NestedScrollView",
   "androidx.coordinatorlayout.widget.CoordinatorLayout",
-  "androidx.viewpager.widget.ViewPager",
-  "androidx.viewpager.widget.ViewPager$DecorView",
   "androidx.recyclerview.widget.RecyclerView",
   "androidx.recyclerview.widget.LinearLayoutManager",
 
@@ -45,6 +43,7 @@ import {
   "com.google.android.material.textfield.TextInputLayout",
 
   "github.daisukiKaffuChino.AdapterCreator",
+  "github.daisukiKaffuChino.CustomViewPager",
   "github.daisukiKaffuChino.LuaCustRecyclerAdapter",
   "github.daisukiKaffuChino.LuaCustRecyclerHolder",
   "github.daisukiKaffuChino.utils.LuaThemeUtil",
@@ -86,21 +85,14 @@ toolbar.setOnMenuItemClickListener(OnMenuItemClickListener{
           layout_margin="20dp",
           {
             MaterialRadioButton,
-            text="Project HSH(默认)",
+            text="默认",
             onClick=function()
-              dataInput("https://raw.githubusercontent.com/projecthsh/Project-HSH/master/index-1.json","settings","JSON")
+              dataInput("https://phsh.bangumi.cyou/index-1.json","settings","JSON")
             end,
           },
           {
             MaterialRadioButton,
-            text="Cyancat000",
-            onClick=function()
-              dataInput("https://raw.githubusercontent.com/Cyancat000/Project-HSH/master/index-1.json","settings","JSON")
-            end,
-          },
-          {
-            MaterialRadioButton,
-            text="znzsofficial",
+            text="DEV",
             onClick=function()
               dataInput("https://raw.githubusercontent.com/znzsofficial/Project-HSH/master/index-1.json","settings","JSON")
             end,
@@ -118,7 +110,7 @@ toolbar.setOnMenuItemClickListener(OnMenuItemClickListener{
             layout_marginTop="10dp",
             textSize="10sp",
             tooltipText=url_json,
-            text="当前地址:\n"..url_json.."\n\n设置重启应用后生效",
+            text="当前地址:\n"..url_json.."\n\n重启应用后生效",
             Typeface=Typeface.defaultFromStyle(Typeface.BOLD);
             onClick=function()
               activity.getSystemService(Context.CLIPBOARD_SERVICE).setText(tostring(url_json))
@@ -149,7 +141,10 @@ fab.setVisibility(8)
 vpg.setOnPageChangeListener(ViewPager.OnPageChangeListener{
   onPageSelected=function(v)
     bottombar.getMenu().getItem(v).setChecked(true)
-    if v~=1 then
+    if v==1 then
+      fab.setVisibility(0)
+      YoYo.with(Techniques.ZoomIn).duration(200).playOn(fab)
+     else
       YoYo.with(Techniques.ZoomOut).duration(200).playOn(fab)
       task(200,function()fab.setVisibility(8)end)
       if v==0 and _isLoaded~=true then
@@ -157,10 +152,15 @@ vpg.setOnPageChangeListener(ViewPager.OnPageChangeListener{
         _isLoaded=true
         loadLocalList()
         collectgarbage("collect")
+        --[[
+       elseif v==2 then
+        YoYo.with(Techniques.FadeIn).duration(384).playOn(home_content)
+       elseif v==3 then
+        YoYo.with(Techniques.FadeIn).duration(384).playOn(json_content)
+       elseif v==4 then
+        YoYo.with(Techniques.FadeIn).duration(384).playOn(setting_content)
+        ]]
       end
-     else
-      fab.setVisibility(0)
-      YoYo.with(Techniques.ZoomIn).duration(200).playOn(fab)
     end
 end})
 
@@ -209,7 +209,6 @@ SelectDownload.onClick=function()
       Typeface=Typeface.defaultFromStyle(Typeface.BOLD);
       onClick=function()
         import{
-          "android.net.Uri",
           "android.provider.DocumentsContract",
           "androidx.documentfile.provider.DocumentFile",
         }
@@ -235,11 +234,78 @@ SelectDownload.onClick=function()
     end
   }
 end
+contactLinear.onClick=function()
+  local onContactLayout=
+  {
+    LinearLayoutCompat,
+    orientation="vertical",
+    layout_width="match_parent";
+    padding="20dp",
+    {
+      MaterialTextView,
+      layout_width="match_parent";
+      layout_Padding="10dp",
+      text="TeleGram交流群:geekdroid_group",
+      textColor=primaryc,
+      backgroundResource=rippleRes.resourceId,
+      textStyle="bold",
+      textSize="16sp",
+      onClick=function()
+        local url="https://t.me/geekdroid_group"
+        viewIntent = Intent("android.intent.action.VIEW",Uri.parse(url))
+        activity.startActivity(viewIntent)
+      end,
+    },
+    {
+      MaterialTextView,
+      layout_width="match_parent";
+      layout_Padding="10dp",
+      text="QQ交流群:740536446",
+      textColor=primaryc,
+      backgroundResource=rippleRes.resourceId,
+      textStyle="bold",
+      textSize="16sp",
+      onClick=function()
+        local _l="mqqapi://card/show_pslcard?src_type=internal&version=1&uin=740536446&card_type=group&source=qrcode"
+        activity.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(_l)))
+      end,
+    },
+  }
+  MaterialAlertDialogBuilder(this)
+  .setTitle("项目交流")
+  .setView(loadlayout(onContactLayout))
+  .setPositiveButton("确定",nil)
+  .show();
+end
+
 
 function onClickFab()
 end
 
-Materialswitch.setOnCheckedChangeListener{
+function onClickClear()
+  tLink.setText("")
+  tPackage.setText("")
+  tDesc.setText("")
+  tVer.setText("")
+  tName.setText("")
+  tLogo.setText("")
+  tSize.setText("")
+end
+
+function onClickGenerate()
+  local dataTable={}
+  dataTable["type"]="apk"
+  dataTable["link"]=tLink.Text
+  dataTable["package"]=tPackage.Text
+  dataTable["desc"]=tDesc.Text
+  dataTable["ver"]=tVer.Text
+  dataTable["name"]=tName.Text
+  dataTable["logo"]=tLogo.Text
+  dataTable["size"]=tSize.Text
+  activity.getSystemService(Context.CLIPBOARD_SERVICE).setText(cjson.encode(dataTable))
+end
+
+monetSwitch.setOnCheckedChangeListener{
   onCheckedChanged=function()
     dataNegate("settings","MYswitch")
     print("切换后需要重启应用以生效")
@@ -402,7 +468,7 @@ adapterm=LuaCustRecyclerAdapter(AdapterCreator({
     local app=superTable[position+1]
     view.title.Text=app.name
     view.profile.Text=app.desc
-    view.pack.Text=app.packge
+    view.pack.Text=app.package
     local options = RequestOptions()
     .placeholder(getFileDrawable("preload"))
     .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC);
@@ -437,12 +503,12 @@ adapterm=LuaCustRecyclerAdapter(AdapterCreator({
       function CustomDownloader(v)
         --存储权限检查
         local flag = checkPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-        if flag~= true then
+        if flag== false then
           requestPermissions(requirePermissions)
           print("请授予存储权限后尝试下载")
           return true
         end
-
+        flag=nil--回收变量
         isDialogCanceled=nil
 
         downloadLayout=
@@ -619,21 +685,22 @@ adapterm=LuaCustRecyclerAdapter(AdapterCreator({
 
             --导入okhttp
             local OkHttpClient,OkHttpRequest,OkHttpCallback=luajava.bindClass"okhttp3.OkHttpClient",luajava.bindClass"okhttp3.Request",luajava.bindClass"okhttp3.Callback"
-            --请求辅助类
-            local request = OkHttpRequest.Builder()
-            .url(url_json)
-            .build();
-            --异步请求
-            local client = OkHttpClient()
-            local callz = client.newCall(request)
-            callz.enqueue(OkHttpCallback{
-              onFailure=function(call,e)
-                mError()
-              end,
-              onResponse=function(call,response)
-                mResponse()
-            end})
-
+            pcall(function()
+              --请求辅助类
+              local request = OkHttpRequest.Builder()
+              .url(url_json)
+              .build();
+              --异步请求
+              local client = OkHttpClient()
+              local callz = client.newCall(request)
+              callz.enqueue(OkHttpCallback{
+                onFailure=function(call,e)
+                  mError()
+                end,
+                onResponse=function(call,response)
+                  mResponse()
+              end})
+            end)
            elseif start_down.Text=="安装" then
             --按设置方式安装
             if sp.getString("suInstall",nil)=="开启" then
@@ -694,25 +761,29 @@ OverScrollDecoratorHelper.setUpOverScroll(recycler_view, OverScrollDecoratorHelp
 
 --导入okhttp
 local OkHttpClient,OkHttpRequest,OkHttpCallback=luajava.bindClass"okhttp3.OkHttpClient",luajava.bindClass"okhttp3.Request",luajava.bindClass"okhttp3.Callback"
---请求辅助类
-mRequest = OkHttpRequest.Builder()
-.url(url_json)
-.build();
---异步请求
-OkHttpClient.Builder()
-.retryOnConnectionFailure(true)
-.readTimeout(30,TimeUnit.SECONDS)
-.writeTimeout(30,TimeUnit.SECONDS)
-.connectTimeout(30,TimeUnit.SECONDS);
-mClient = OkHttpClient()
-mCall = mClient.newCall(mRequest)
-mCall.enqueue(OkHttpCallback{
-  onFailure=function(call,e)
-    mSetText(optionText,"连接失败，请检查你的网络设置或JSON源")
-  end,
-  onResponse=function(call,response)
-    mLoadTable(response.body().string())
-end})
+
+pcall(function()
+  --请求辅助类
+  mRequest = OkHttpRequest.Builder()
+  .url(url_json)
+  .build();
+  --异步请求
+  OkHttpClient.Builder()
+  .retryOnConnectionFailure(true)
+  .readTimeout(30,TimeUnit.SECONDS)
+  .writeTimeout(30,TimeUnit.SECONDS)
+  .connectTimeout(30,TimeUnit.SECONDS);
+
+  mClient = OkHttpClient()
+  mCall = mClient.newCall(mRequest)
+  mCall.enqueue(OkHttpCallback{
+    onFailure=function(call,e)
+      mSetText(optionText,"连接失败，请检查你的网络设置或JSON源")
+    end,
+    onResponse=function(call,response)
+      mLoadTable(response.body().string())
+  end})
+end)
 
 function mSetText(id,m)
   Thread(Runnable{
@@ -734,6 +805,7 @@ function mLoadTable(json)
           superTable=cjson.decode(json)
           mainProgress.setVisibility(8)
           optionText.setVisibility(8)
+          YoYo.with(Techniques.FadeIn).duration(200).playOn(recycler_view)
       end})
   end}).start()
 end

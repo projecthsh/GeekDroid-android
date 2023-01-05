@@ -1,10 +1,13 @@
---设置初始JSON地址
-if sp.getString("JSON","")=="" then
-  dataInput("https://phsh.bangumi.cyou/index-1.json","settings","JSON")
-  url_json="https://phsh.bangumi.cyou/index-1.json"
- else
-  url_json=sp.getString("JSON",nil)
+function resetJson()
+  --设置初始JSON地址
+  if sp.getString("JSON","")=="" then
+    dataInput("https://phsh.bangumi.cyou/index-1.json","settings","JSON")
+    url_json="https://phsh.bangumi.cyou/index-1.json"
+   else
+    url_json=sp.getString("JSON",nil)
+  end
 end
+resetJson()
 
 --设置初始下载地址
 if sp.getString("FileAddress","")=="" then
@@ -37,7 +40,7 @@ if sp.getString("isFirstStart","")=="" then
     {
       MaterialTextView,
       text="GeekDroid的运行需要授予存储权限，稍后将自动申请权限",
-      textColor=primaryc,
+      textColor=primaryColor,
       Typeface=Typeface.defaultFromStyle(Typeface.BOLD);
     },
     {

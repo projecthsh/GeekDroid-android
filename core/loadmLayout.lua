@@ -12,7 +12,7 @@ layout={
       layout_height="fill",
       layout_scrollFlags="scroll|exitUtilCollapsed|snap",
       title="GeekDroid",
-      background=ColorDrawable(surfaceVar),
+      background=ColorDrawable(backgroundc),
       --expandedTitleColor="#FFFFFF",
       --collapsedTitleTextColor="#FFFFFF",
       --展开 和 收起 时的标题颜色
@@ -20,7 +20,7 @@ layout={
         MaterialToolbar,
         id="toolbar",
         layout_collapseMode="pin",
-        background=ColorDrawable(surfaceVar),
+        background=ColorDrawable(backgroundc),
         layout_width="fill",
         layout_height="56dp",
       },
@@ -85,7 +85,7 @@ activity.setContentView(loadlayout(layout))
 activity.getSupportActionBar().hide()
 --配置状态栏颜色
 local window = activity.getWindow()
-window.setStatusBarColor(surfaceVar)
+window.setStatusBarColor(backgroundc)
 window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
 window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS)
 window.getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR)
@@ -119,3 +119,47 @@ addToolbarMenu(0,1,1,"退出")
 mainProgress
 .getIndeterminateDrawable()
 .setColorFilter(tertiaryc, PorterDuff.Mode.SRC_IN)
+
+
+fab.setVisibility(8)
+--ViewPager和BottomNavigationView联动
+vpg.setOnPageChangeListener(ViewPager.OnPageChangeListener{
+  onPageSelected=function(v)
+    bottombar.getMenu().getItem(v).setChecked(true)
+    if v==1 then
+      fab.setVisibility(0)
+      YoYo.with(Techniques.ZoomIn).duration(200).playOn(fab)
+     else
+      YoYo.with(Techniques.ZoomOut).duration(200).playOn(fab)
+      task(200,function()fab.setVisibility(8)end)
+      if v==0 and _isLoaded~=true then
+        --显示本地列表
+        _isLoaded=true
+        loadLocalList()
+        collectgarbage("collect")
+        --[[
+       elseif v==2 then
+        YoYo.with(Techniques.FadeIn).duration(384).playOn(home_content)
+       elseif v==3 then
+        YoYo.with(Techniques.FadeIn).duration(384).playOn(json_content)
+       elseif v==4 then
+        YoYo.with(Techniques.FadeIn).duration(384).playOn(setting_content)
+        ]]
+      end
+    end
+end})
+
+
+bottombar.setOnNavigationItemSelectedListener(BottomNavigationView.OnNavigationItemSelectedListener{
+  onNavigationItemSelected = function(item)
+    vpg.setCurrentItem(item.getItemId())
+    return true
+end})
+--默认主页
+bottombar.setSelectedItemId(2)
+--一行解决控件联动。使用LuaPagerAdapter新增的构造方法，支持在布局表中设置标题!
+mtab.setupWithViewPager(cvpg)
+
+--给主页面ProgressBar勉强设置一个动画
+YoYo.with(Techniques.FadeIn).duration(500).playOn(mainProgress)
+YoYo.with(Techniques.FadeIn).duration(500).playOn(optionText)

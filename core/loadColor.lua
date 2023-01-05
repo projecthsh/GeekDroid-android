@@ -6,7 +6,6 @@ if sp.getString("MYswitch",nil)=="开启" then
 end
 
 --初始化颜色
---为了使深色主题效果正常，请不要使用硬编码颜色!
 local themeUtil=LuaThemeUtil(this)
 MDC_R=luajava.bindClass"com.google.android.material.R"
 surfaceColor=themeUtil.getColorSurface()
@@ -14,14 +13,14 @@ surfaceVar=themeUtil.getColorSurfaceVariant()
 onsurfaceVar=themeUtil.getColorOnSurfaceVariant()
 onsurfaceInv=themeUtil.getColorOnSurfaceInverse()
 backgroundc=themeUtil.getColorBackground()
-onbackgroundc=themeUtil.getColorOnBackground()
+onbackgroundColor=themeUtil.getColorOnBackground()
 titleColor=themeUtil.getTitleTextColor()
-textc=themeUtil.getTextColor()
-menuc=themeUtil.getActionMenuTextColor()
-primaryc=themeUtil.getColorPrimary()
-primarycVar=themeUtil.getColorPrimaryVariant()
-secondaryc=themeUtil.getColorSecondary()
-onsecondaryc=themeUtil.getColorOnSecondary()
+textColor=themeUtil.getTextColor()
+menuColor=themeUtil.getActionMenuTextColor()
+primaryColor=themeUtil.getColorPrimary()
+primaryVar=themeUtil.getColorPrimaryVariant()
+secondaryColor=themeUtil.getColorSecondary()
+onSecondaryColor=themeUtil.getColorOnSecondary()
 tertiaryc=themeUtil.getColorTertiary()
 ontertiaryc=themeUtil.getColorOnTertiary()
 tertiaryContain=themeUtil.getColorTertiaryContainer()

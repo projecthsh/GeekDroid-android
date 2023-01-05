@@ -1,8 +1,7 @@
 appname="GeekDroid"
-appver="0.3.2"
-appcode="43"
+appver="0.3.4"
+appcode="45"
 packagename="github.znzsofficial.geekdroid"
-reOpenLuaTheme="Theme.Material3"
 welcome_time="0"
 debugmode=true
 enableExtendedOutputSupport=false

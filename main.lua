@@ -63,9 +63,16 @@ import {
   "core.loadColor",
   "core.loadmLayout",
   "core.loadSettings",
-
+  "core.loadListener",
+  "core.loadDialog",
 }
 
+--导入okhttp
+local OkHttpClient,OkHttpRequest,OkHttpCallback=luajava.bindClass"okhttp3.OkHttpClient",luajava.bindClass"okhttp3.Request",luajava.bindClass"okhttp3.Callback"
+--导入cjson
+cjson=require "cjson"
+--导入rawio by旋律
+rawio=require "rawio"
 
 --顶栏菜单点击监听
 import "androidx.appcompat.widget.Toolbar$OnMenuItemClickListener"
@@ -73,327 +80,116 @@ toolbar.setOnMenuItemClickListener(OnMenuItemClickListener{
   onMenuItemClick=function(item)
   switch item.getItemId() do
      case 0
+      --换源Dialog
+      --设置布局表
       local SelectLayout=
       {
         LinearLayoutCompat,
         orientation="vertical",
+        orientation="vertical",
+        layout_width="match_parent";
+        padding="20dp";
         {
-          RadioGroup,
-          id="jsonGroup",
-          orientation="vertical",
+          TextInputEditText;
           layout_width="match_parent";
-          layout_margin="20dp",
-          {
-            MaterialRadioButton,
-            text="默认",
-            onClick=function()
-              dataInput("https://phsh.bangumi.cyou/index-1.json","settings","JSON")
-            end,
-          },
-          {
-            MaterialRadioButton,
-            text="DEV",
-            onClick=function()
-              dataInput("https://raw.githubusercontent.com/znzsofficial/Project-HSH/master/index-1.json","settings","JSON")
-            end,
-          },
-          {
-            TextInputEditText;
-            layout_width="match_parent";
-            layout_gravity="center",
-            tooltipText="输入你的JSON源",
-            hint="自定义JSON源";
-            id="jsonEdit";
-          },
-          {
-            MaterialTextView,
-            layout_marginTop="10dp",
-            textSize="10sp",
-            tooltipText=url_json,
-            text="当前地址:\n"..url_json.."\n\n重启应用后生效",
-            Typeface=Typeface.defaultFromStyle(Typeface.BOLD);
-            onClick=function()
-              activity.getSystemService(Context.CLIPBOARD_SERVICE).setText(tostring(url_json))
-            end
-          },
+          layout_gravity="center",
+          tooltipText="输入你的JSON源",
+          hint="自定义JSON源";
+          id="jsonEdit";
+        },
+        {
+          MaterialTextView,
+          layout_marginTop="10dp",
+          textSize="10sp",
+          tooltipText=url_json,
+          text="当前地址:\n"..url_json,
+          Typeface=Typeface.defaultFromStyle(Typeface.BOLD);
+          onClick=function()
+            activity.getSystemService(Context.CLIPBOARD_SERVICE).setText(tostring(url_json))
+          end,
         },
       }
-      MaterialAlertDialogBuilder(this)
+
+      local items={"默认","Dev","自定义"}
+      if url_json=="https://phsh.bangumi.cyou/index-1.json" then
+        selectIndex=0 --选中项索引
+       elseif url_json=="https://raw.githubusercontent.com/znzsofficial/Project-HSH/master/index-1.json"
+        selectIndex=1
+       else
+        selectIndex=2
+      end
+
+      local json_dialog=MaterialAlertDialogBuilder(this)
       .setTitle("更换JSON源")
+      .setSingleChoiceItems(items,selectIndex,{
+        onClick=function(json_dialog,i)
+
+          if tonumber(i)==0 then
+            dataInput("https://phsh.bangumi.cyou/index-1.json","settings","JSON")
+           elseif tonumber(i)==1 then
+            dataInput("https://raw.githubusercontent.com/znzsofficial/Project-HSH/master/index-1.json","settings","JSON")
+           else
+          end
+
+          --重新设置url_json
+          resetJson()
+
+        end
+      })
       .setView(loadlayout(SelectLayout))
-      .setPositiveButton("确定",function()
+      .setPositiveButton("刷新",function()
+        --隐藏输入法
         hideInput(jsonEdit)
+        --清空Table
+        superTable={}
+        --刷新适配器
+        adapterm.notifyDataSetChanged()
+        --显示加载提示
+        mainProgress.setVisibility(0)
+        optionText.setVisibility(0)
+        optionText.setText("加载中...")
+        --okhttp请求
+        pcall(function()
+          --请求辅助类
+          local mRequest = OkHttpRequest.Builder()
+          .url(url_json)
+          .build();
+          --异步请求
+          OkHttpClient.Builder()
+          .retryOnConnectionFailure(true)
+          .readTimeout(30,TimeUnit.SECONDS)
+          .writeTimeout(30,TimeUnit.SECONDS)
+          .connectTimeout(30,TimeUnit.SECONDS);
+
+          local mClient = OkHttpClient()
+          local mCall = mClient.newCall(mRequest)
+          mCall.enqueue(OkHttpCallback{
+            onFailure=function(call,e)
+              mSetText(optionText,"连接失败，请检查你的网络设置或JSON源")
+            end,
+            onResponse=function(call,response)
+              mLoadTable(response.body().string())
+          end})
+        end)
+
       end)
       .show()
+      --EditText监听
       jsonEdit.addTextChangedListener{
         onTextChanged=function()
           dataInput(tostring(jsonEdit.getText()),"settings","JSON")
+          --重新设置url_json
+          resetJson()
         end
       }
+
      case 1
+      --退出应用
       activity.finish()
     end
   end
 })
 
-fab.setVisibility(8)
---ViewPager和BottomNavigationView联动
-vpg.setOnPageChangeListener(ViewPager.OnPageChangeListener{
-  onPageSelected=function(v)
-    bottombar.getMenu().getItem(v).setChecked(true)
-    if v==1 then
-      fab.setVisibility(0)
-      YoYo.with(Techniques.ZoomIn).duration(200).playOn(fab)
-     else
-      YoYo.with(Techniques.ZoomOut).duration(200).playOn(fab)
-      task(200,function()fab.setVisibility(8)end)
-      if v==0 and _isLoaded~=true then
-        --显示本地列表
-        _isLoaded=true
-        loadLocalList()
-        collectgarbage("collect")
-        --[[
-       elseif v==2 then
-        YoYo.with(Techniques.FadeIn).duration(384).playOn(home_content)
-       elseif v==3 then
-        YoYo.with(Techniques.FadeIn).duration(384).playOn(json_content)
-       elseif v==4 then
-        YoYo.with(Techniques.FadeIn).duration(384).playOn(setting_content)
-        ]]
-      end
-    end
-end})
-
-
-bottombar.setOnNavigationItemSelectedListener(BottomNavigationView.OnNavigationItemSelectedListener{
-  onNavigationItemSelected = function(item)
-    vpg.setCurrentItem(item.getItemId())
-    return true
-end})
---默认主页
-bottombar.setSelectedItemId(2)
---一行解决控件联动。使用LuaPagerAdapter新增的构造方法，支持在布局表中设置标题!
-mtab.setupWithViewPager(cvpg)
-
---给主页面ProgressBar勉强设置一个动画
-YoYo.with(Techniques.FadeIn).duration(500).playOn(mainProgress)
-YoYo.with(Techniques.FadeIn).duration(500).playOn(optionText)
-
-SelectDownload.onClick=function()
-  local onSelectLayout=
-  {
-    LinearLayoutCompat,
-    orientation="vertical",
-    layout_width="match_parent";
-    padding="20dp",
-    {
-      TextInputEditText;
-      layout_width="match_parent";
-      layout_gravity="center",
-      tooltipText="输入下载路径",
-      text=sp.getString("FileAddress",""),
-      id="downloadEdit";
-    },
-    {
-      MaterialTextView,
-      layout_marginTop="10dp",
-      tooltipText=sp.getString("FileAddress",""),
-      text="当前路径为"..sp.getString("FileAddress","").."\n仅支持下载到Android内部存储\n\n对于Android10以上用户建议通过SAF进一步授予对应文件夹权限",
-    },
-    {
-      MaterialTextView,
-      layout_marginTop="10dp",
-      text="点击此处打开SAF框架",
-      textColor=primaryc,
-      backgroundResource=rippleRes.resourceId,
-      Typeface=Typeface.defaultFromStyle(Typeface.BOLD);
-      onClick=function()
-        import{
-          "android.provider.DocumentsContract",
-          "androidx.documentfile.provider.DocumentFile",
-        }
-        uri=Uri.parse("content://com.android.externalstorage.documents/tree/primary%3A")
-        intent=Intent(Intent.ACTION_OPEN_DOCUMENT_TREE)
-        intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION|Intent.FLAG_GRANT_WRITE_URI_PERMISSION|Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION|Intent.FLAG_GRANT_PREFIX_URI_PERMISSION)
-        intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI,DocumentFile.fromTreeUri(activity,uri).getUri())
-        activity.startActivity(intent)
-      end,
-    },
-  }
-  MaterialAlertDialogBuilder(this)
-  .setTitle("文件下载路径")
-  .setView(loadlayout(onSelectLayout))
-  .setPositiveButton("确定",function()
-    hideInput(downloadEdit)
-    SelectDownload.getChildAt(0).getChildAt(1).setText("当前下载路径"..sp.getString("FileAddress",""))
-  end)
-  .show()
-  downloadEdit.addTextChangedListener{
-    onTextChanged=function()
-      dataInput(tostring(downloadEdit.getText()),"settings","FileAddress")
-    end
-  }
-end
-contactLinear.onClick=function()
-  local onContactLayout=
-  {
-    LinearLayoutCompat,
-    orientation="vertical",
-    layout_width="match_parent";
-    padding="20dp",
-    {
-      MaterialTextView,
-      layout_width="match_parent";
-      layout_Padding="10dp",
-      text="TeleGram交流群:geekdroid_group",
-      textColor=primaryc,
-      backgroundResource=rippleRes.resourceId,
-      textStyle="bold",
-      textSize="16sp",
-      onClick=function()
-        local url="https://t.me/geekdroid_group"
-        viewIntent = Intent("android.intent.action.VIEW",Uri.parse(url))
-        activity.startActivity(viewIntent)
-      end,
-    },
-    {
-      MaterialTextView,
-      layout_width="match_parent";
-      layout_Padding="10dp",
-      text="QQ交流群:740536446",
-      textColor=primaryc,
-      backgroundResource=rippleRes.resourceId,
-      textStyle="bold",
-      textSize="16sp",
-      onClick=function()
-        local _l="mqqapi://card/show_pslcard?src_type=internal&version=1&uin=740536446&card_type=group&source=qrcode"
-        activity.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(_l)))
-      end,
-    },
-  }
-  MaterialAlertDialogBuilder(this)
-  .setTitle("项目交流")
-  .setView(loadlayout(onContactLayout))
-  .setPositiveButton("确定",nil)
-  .show();
-end
-
-
-function onClickFab()
-end
-
-function onClickClear()
-  tLink.setText("")
-  tPackage.setText("")
-  tDesc.setText("")
-  tVer.setText("")
-  tName.setText("")
-  tLogo.setText("")
-  tSize.setText("")
-end
-
-function onClickGenerate()
-  local dataTable={}
-  dataTable["type"]="apk"
-  dataTable["link"]=tLink.Text
-  dataTable["package"]=tPackage.Text
-  dataTable["desc"]=tDesc.Text
-  dataTable["ver"]=tVer.Text
-  dataTable["name"]=tName.Text
-  dataTable["logo"]=tLogo.Text
-  dataTable["size"]=tSize.Text
-  activity.getSystemService(Context.CLIPBOARD_SERVICE).setText(cjson.encode(dataTable))
-end
-
-monetSwitch.setOnCheckedChangeListener{
-  onCheckedChanged=function()
-    dataNegate("settings","MYswitch")
-    print("切换后需要重启应用以生效")
-  end
-}
-
-autoSwitch.setOnCheckedChangeListener{
-  onCheckedChanged=function()
-    dataNegate("settings","autoInstall")
-  end
-}
-
-suSwitch.setOnCheckedChangeListener{
-  onCheckedChanged=function()
-    local RootUtil=luajava.bindClass"com.androlua.util.RootUtil"
-    if RootUtil.haveRoot() then
-      dataNegate("settings","suInstall")
-     else
-      suSwitch.setChecked(false)
-    end
-  end
-}
-
-licenseShow.onClick=function(v)
-  local MarkDownLayout=
-  {
-    LinearLayoutCompat,
-    layout_width="match_parent";
-    padding="12dp";
-    {
-      MaterialCardView,
-      radius="16dp",
-      layout_width="match_parent";
-      {
-        LuaWebView;
-        id="WebView";
-        layout_width="-1";
-        layout_height="-1";
-        ProgressBarEnabled=false,
-      },
-    },
-  }
-  MaterialAlertDialogBuilder(this)
-  .setTitle("开源许可")
-  .setView(loadlayout(MarkDownLayout))
-  .setPositiveButton("确定",nil)
-  .show()
-  --设置WebView显示动画
-  YoYo.with(Techniques.FadeIn).duration(1000).playOn(WebView)
-  --rawio获取md内容
-  rawio=require "rawio"
-  local Markdown4jProcessor=luajava.bindClass("org.markdown4j.Markdown4jProcessor")
-  local content = rawio.iotsread(activity.getLuaDir().."/license.md","r")
-  WebView.loadDataWithBaseURL("",Markdown4jProcessor().process(content),"text/html","utf-8",nil)
-  function isNightMode()
-    local configuration = activity.getResources().getConfiguration();
-    return configuration.uiMode+1==configuration.UI_MODE_NIGHT_YES or configuration.uiMode-1==configuration.UI_MODE_NIGHT_YES or configuration.uiMode==configuration.UI_MODE_NIGHT_YES
-  end
-  WebView.setWebViewClient({
-    onPageFinished = function(view,url)
-      if isNightMode() then
-        WebView.evaluateJavascript([[javascript:(function(){var styleElem=null,doc=document,ie=doc.all,fontColor=50,sel="body,body *";styleElem=createCSS(sel,setStyle(fontColor),styleElem);function setStyle(fontColor){var colorArr=[fontColor,fontColor,fontColor];return"background-color:#212121 !important;color:RGB("+colorArr.join("%,")+"%) !important;"}function createCSS(sel,decl,styleElem){var doc=document,h=doc.getElementsByTagName("head")[0],styleElem=styleElem;if(!styleElem){s=doc.createElement("style");s.setAttribute("type","text/css");styleElem=ie?doc.styleSheets[doc.styleSheets.length-1]:h.appendChild(s)}if(ie){styleElem.addRule(sel,decl)}else{styleElem.innerHTML="";styleElem.appendChild(doc.createTextNode(sel+" {"+decl+"}"))}return styleElem}})();]],nil)
-       else
-      end
-    end,
-    shouldOverrideUrlLoading=function(view,url)
-      local intent = Intent()
-      intent.setAction("android.intent.action.VIEW")
-      local content_url = Uri.parse(url)
-      intent.setData(content_url)
-      activity.startActivity(intent)
-      return true
-    end
-  })
-  WebView.onLongClick = function()
-    return true
-  end
-end
-
-documentShow.onClick=function(v)
-  MaterialAlertDialogBuilder(this)
-  .setTitle("使用协议和隐私政策")
-  .setMessage(getPrivatePrivacy())
-  .setPositiveButton("确定",nil)
-  .show()
-end
-
-cjson=require "cjson"
 --主RecyclerAdapter部分
 local Mitem=
 {LinearLayoutCompat,
@@ -435,8 +231,6 @@ local Mitem=
           id="title",
         },
         {MaterialTextView,
-          ellipsize='end';
-          singleLine=true,
           textSize="13sp",
           id="profile",
         },
@@ -448,8 +242,9 @@ local Mitem=
     },
   },
 };
-
+--设置空Table
 superTable={}
+--设置主RV适配器
 adapterm=LuaCustRecyclerAdapter(AdapterCreator({
   getItemCount=function()
     return #superTable
@@ -469,19 +264,24 @@ adapterm=LuaCustRecyclerAdapter(AdapterCreator({
     view.title.Text=app.name
     view.profile.Text=app.desc
     view.pack.Text=app.package
+    --Glide配置
     local options = RequestOptions()
     .placeholder(getFileDrawable("preload"))
     .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC);
     Glide.with(activity).asDrawable().load(app.logo).apply(options).into(view.icon)
+
     view.contents.backgroundResource=rippleRes.resourceId
     view.contents.onClick=function(v)
       --点击显示PopupWindow
       local popMenu={
         ["下载"]=function()
+          --检查下载链接
           if app.link=="" or app.link==nil then
             print(app.name.."暂无下载链接")
            else
+            --检查是否有正在下载的任务
             if isDownloading==true then
+              --当前下载任务是否为选择的App
               if nowDownloading~=app.name then
                 print(nowDownloading.."下载任务正在进行")
                 return true
@@ -510,8 +310,8 @@ adapterm=LuaCustRecyclerAdapter(AdapterCreator({
         end
         flag=nil--回收变量
         isDialogCanceled=nil
-
-        downloadLayout=
+        --设置布局表
+        local downloadLayout=
         {
           LinearLayoutCompat,
           orientation='vertical',
@@ -588,7 +388,7 @@ adapterm=LuaCustRecyclerAdapter(AdapterCreator({
         };
 
 
-        dialog=MaterialAlertDialogBuilder(this)
+        download_Dialog=MaterialAlertDialogBuilder(this)
         .setTitle(app.name.."下载")
         .setView(loadlayout(downloadLayout))
         .show()
@@ -643,7 +443,7 @@ adapterm=LuaCustRecyclerAdapter(AdapterCreator({
           if isDownloading==true then
             isDialogCanceled=true
           end
-          dialog.cancel()
+          download_Dialog.cancel()
         end
 
         copy_down.onClick=function()
@@ -759,12 +559,9 @@ recycler_view.setLayoutManager(LinearLayoutManager(this))
 local OverScrollDecoratorHelper=luajava.bindClass("me.everything.android.ui.overscroll.OverScrollDecoratorHelper")
 OverScrollDecoratorHelper.setUpOverScroll(recycler_view, OverScrollDecoratorHelper.ORIENTATION_VERTICAL)
 
---导入okhttp
-local OkHttpClient,OkHttpRequest,OkHttpCallback=luajava.bindClass"okhttp3.OkHttpClient",luajava.bindClass"okhttp3.Request",luajava.bindClass"okhttp3.Callback"
-
 pcall(function()
   --请求辅助类
-  mRequest = OkHttpRequest.Builder()
+  local mRequest = OkHttpRequest.Builder()
   .url(url_json)
   .build();
   --异步请求
@@ -774,8 +571,8 @@ pcall(function()
   .writeTimeout(30,TimeUnit.SECONDS)
   .connectTimeout(30,TimeUnit.SECONDS);
 
-  mClient = OkHttpClient()
-  mCall = mClient.newCall(mRequest)
+  local mClient = OkHttpClient()
+  local mCall = mClient.newCall(mRequest)
   mCall.enqueue(OkHttpCallback{
     onFailure=function(call,e)
       mSetText(optionText,"连接失败，请检查你的网络设置或JSON源")
@@ -803,8 +600,12 @@ function mLoadTable(json)
       this.runOnUiThread(Runnable{
         run = function()
           superTable=cjson.decode(json)
+          --隐藏加载提示
           mainProgress.setVisibility(8)
           optionText.setVisibility(8)
+          --刷新适配器
+          adapterm.notifyDataSetChanged()
+          --RV显示动画
           YoYo.with(Techniques.FadeIn).duration(200).playOn(recycler_view)
       end})
   end}).start()
@@ -847,48 +648,50 @@ function loadLocalList()
     }
   }
 
+  AppList={}
+  adapter_app=LuaCustRecyclerAdapter(AdapterCreator({
+    getItemCount=function()
+      return #AppList
+    end,
+    onCreateViewHolder=function(parent,viewType)
+      local views={}
+      holder=LuaCustRecyclerHolder(loadlayout(item_app,views))
+      holder.view.setTag(views)
+      return holder
+    end,
+    onBindViewHolder=function(holder,position)
+      view=holder.view.getTag()
+      local localapp=AppList[position+1]
+      view.name.Text=localapp.app_name
+      view.packname.Text=localapp.packageName
+      local options = RequestOptions()
+      .placeholder(getFileDrawable("preload"))
+      .skipMemoryCache(true)
+      .diskCacheStrategy(DiskCacheStrategy.NONE);
+      Glide.with(activity).asDrawable().load(localapp.app_icon).apply(options).into(view.icon)
+      view.contents.backgroundResource=rippleRes.resourceId
+      view.contents.onClick=function(v)
+        local popMenu={
+          ["更多"]={
+            ["暂无"]=function()
+            end,
+          },
+          ["打开"]=function()
+            manager = activity.getPackageManager()
+            open = manager.getLaunchIntentForPackage(localapp.packageName)
+            this.startActivity(open)
+          end,
+        }
+        showPopMenu(popMenu,v,localapp.app_name)
+      end
+    end,
+  }))
+  recycler_app.setAdapter(adapter_app)
+  recycler_app.setLayoutManager(LinearLayoutManager(this))
 
   function CreateAppAdapter(list)
     AppList=list()
-    adapter_app=LuaCustRecyclerAdapter(AdapterCreator({
-      getItemCount=function()
-        return #AppList
-      end,
-      onCreateViewHolder=function(parent,viewType)
-        local views={}
-        holder=LuaCustRecyclerHolder(loadlayout(item_app,views))
-        holder.view.setTag(views)
-        return holder
-      end,
-      onBindViewHolder=function(holder,position)
-        view=holder.view.getTag()
-        local localapp=AppList[position+1]
-        view.name.Text=localapp.app_name
-        view.packname.Text=localapp.packageName
-        local options = RequestOptions()
-        .placeholder(getFileDrawable("preload"))
-        .skipMemoryCache(true)
-        .diskCacheStrategy(DiskCacheStrategy.NONE);
-        Glide.with(activity).asDrawable().load(localapp.app_icon).apply(options).into(view.icon)
-        view.contents.backgroundResource=rippleRes.resourceId
-        view.contents.onClick=function(v)
-          local popMenu={
-            ["更多"]={
-              ["暂无"]=function()
-              end,
-            },
-            ["打开"]=function()
-              manager = activity.getPackageManager()
-              open = manager.getLaunchIntentForPackage(localapp.packageName)
-              this.startActivity(open)
-            end,
-          }
-          showPopMenu(popMenu,v,localapp.app_name)
-        end
-      end,
-    }))
-    recycler_app.setAdapter(adapter_app)
-    recycler_app.setLayoutManager(LinearLayoutManager(this))
+    adapter_app.notifyDataSetChanged()
     AppoptionText.setVisibility(8)
     AppProgress.setVisibility(8)
   end

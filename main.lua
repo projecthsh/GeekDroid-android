@@ -27,7 +27,6 @@ import {
 
   "com.google.android.material.appbar.AppBarLayout",
   "com.google.android.material.appbar.MaterialToolbar",
-  "com.google.android.material.appbar.CollapsingToolbarLayout",
   "com.google.android.material.button.MaterialButton",
   "com.google.android.material.bottomnavigation.BottomNavigationView",
   "com.google.android.material.button.MaterialButtonToggleGroup",

@@ -1,6 +1,6 @@
 appname="GeekDroid"
-appver="0.3.4"
-appcode="45"
+appver="0.3.5"
+appcode="46"
 packagename="github.znzsofficial.geekdroid"
 welcome_time="0"
 debugmode=true

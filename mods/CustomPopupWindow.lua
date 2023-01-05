@@ -10,6 +10,7 @@ function showPopMenu(tab,views,title)
       layout_width="192dp";
       layout_height="-2",
       layout_margin="8dp",
+      useCompatPadding=true,
       {
         LinearLayoutCompat;
         layout_height="-1";

@@ -1,4 +1,8 @@
 --设置主题
+--[[do
+  local _ENV={activity=this,style=luajava.bindClass'com.google.android.material.R$style'}
+  activity.theme=style.Theme_Material3_DayNight
+end]]
 activity.setTheme(R.style.Theme_ReOpenLua_Material3)
 if sp.getString("MYswitch",nil)=="开启" then
   import"com.google.android.material.color.DynamicColors"

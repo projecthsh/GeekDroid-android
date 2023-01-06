@@ -28,7 +28,7 @@ end
 monetSwitch.setOnCheckedChangeListener{
   onCheckedChanged=function()
     dataNegate("settings","MYswitch")
-    print("切换后需要重启应用以生效")
+    snack("切换后需要重启应用以生效")
   end
 }
 

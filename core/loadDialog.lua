@@ -1,4 +1,3 @@
-
 SelectDownload.onClick=function()
   local onSelectLayout=
   {

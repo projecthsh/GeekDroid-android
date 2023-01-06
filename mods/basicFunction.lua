@@ -1,14 +1,9 @@
-import{
-  "android.content.Context",
-  "android.content.pm.PackageManager",
-}
-
 function dp2px(dpValue)
   local scale = activity.getResources().getDisplayMetrics().scaledDensity
   return dpValue * scale + 0.5
 end
 
-function print(content)
+function snack(content)
   local _v=Snackbar.make(vpg,content,Snackbar.LENGTH_SHORT).show();
   if vpg.getCurrentItem() == 1 then
     _v.setAnchorView(fab)

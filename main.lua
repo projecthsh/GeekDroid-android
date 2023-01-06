@@ -4,7 +4,9 @@ import {
   "android.widget.*",
   "android.view.*",
   "android.animation.LayoutTransition",
+  "android.content.Context",
   "android.content.Intent",
+  "android.content.pm.PackageManager",
   "android.content.res.ColorStateList",
   "android.graphics.BitmapFactory",
   "android.graphics.PorterDuff",
@@ -20,6 +22,7 @@ import {
 
   "androidx.appcompat.widget.LinearLayoutCompat",
   "androidx.appcompat.widget.AppCompatImageView",
+  "androidx.appcompat.widget.PopupMenu",
   "androidx.core.widget.NestedScrollView",
   "androidx.coordinatorlayout.widget.CoordinatorLayout",
   "androidx.recyclerview.widget.RecyclerView",
@@ -56,7 +59,6 @@ import {
   "mods.Permission",
   "mods.basicFunction",
   "mods.settingFunction",
-  "mods.CustomPopupWindow",
   "mods.PrivacyDocument",
 
   "core.loadColor",
@@ -271,40 +273,40 @@ adapterm=LuaCustRecyclerAdapter(AdapterCreator({
 
     view.contents.backgroundResource=rippleRes.resourceId
     view.contents.onClick=function(v)
-      --点击显示PopupWindow
-      local popMenu={
-        ["下载"]=function()
-          --检查下载链接
-          if app.link=="" or app.link==nil then
-            print(app.name.."暂无下载链接")
-           else
-            --检查是否有正在下载的任务
-            if isDownloading==true then
-              --当前下载任务是否为选择的App
-              if nowDownloading~=app.name then
-                print(nowDownloading.."下载任务正在进行")
-                return true
-               else
-                CustomDownloader()
-              end
+
+      local pop =PopupMenu(activity,v)
+      local menu=pop.Menu
+      menu.add("下载").onMenuItemClick=function(a)
+        --检查下载链接
+        if app.link=="" or app.link==nil then
+          snack(app.name.."暂无下载链接")
+         else
+          --检查是否有正在下载的任务
+          if isDownloading==true then
+            --当前下载任务是否为选择的App
+            if nowDownloading~=app.name then
+              snack(nowDownloading.."下载任务正在进行")
+              return true
              else
               CustomDownloader()
             end
+           else
+            CustomDownloader()
           end
-        end,
-        ["详情"]={
-          ["暂无"]=function()
-          end,
-        },
-      }
-      showPopMenu(popMenu,v,app.name)
+        end
+      end
+      menu1 = menu.addSubMenu("详情")
+      menu1.add("暂无").onMenuItemClick=function(a)
+      end
+      pop.show()
+
       --下载器
       function CustomDownloader(v)
         --存储权限检查
         local flag = checkPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
         if flag== false then
           requestPermissions(requirePermissions)
-          print("请授予存储权限后尝试下载")
+          snack("请授予存储权限后尝试下载")
           return true
         end
         flag=nil--回收变量
@@ -670,25 +672,26 @@ function loadLocalList()
       Glide.with(activity).asDrawable().load(localapp.app_icon).apply(options).into(view.icon)
       view.contents.backgroundResource=rippleRes.resourceId
       view.contents.onClick=function(v)
-        local popMenu={
-          ["更多"]={
-            ["暂无"]=function()
-            end,
-          },
-          ["打开"]=function()
-            manager = activity.getPackageManager()
-            open = manager.getLaunchIntentForPackage(localapp.packageName)
-            this.startActivity(open)
-          end,
-        }
-        showPopMenu(popMenu,v,localapp.app_name)
+
+        local pop =PopupMenu(activity,v)
+        local menu=pop.Menu
+        menu.add("打开").onMenuItemClick=function(a)
+          manager = activity.getPackageManager()
+          open = manager.getLaunchIntentForPackage(localapp.packageName)
+          this.startActivity(open)
+        end
+        menu1 = menu.addSubMenu("更多")
+        menu1.add("暂无").onMenuItemClick=function(a)
+        end
+        pop.show()
+
       end
     end,
   }))
   recycler_app.setAdapter(adapter_app)
   recycler_app.setLayoutManager(LinearLayoutManager(this))
 
-  function CreateAppAdapter(list)
+  function ResetAppAdapter(list)
     AppList=list()
     adapter_app.notifyDataSetChanged()
     AppoptionText.setVisibility(8)
@@ -726,7 +729,7 @@ function loadLocalList()
       return data
     end
 
-    call("CreateAppAdapter",returnTable)
+    call("ResetAppAdapter",returnTable)
   end)
 end
 
